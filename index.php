@@ -287,7 +287,7 @@ function ToggleURLBox(){
 
 <ul style="list-style:none; padding:0; margin:0">
 	<li>JPG GIF PNG / MAX <span style="font-size:18px"><?php echo $MaxSize; ?></span>KB / <span style="font-size:20px">7</span>日間保存 / Admin <?php echo $Admin; ?></li>
-	<li>連投可能 / URL [<?php echo $FullURL; ?>number.ext]</li>
+	<li>連投可能 / URL [<?php echo "{$FullURL}{$SaveFolder}"; ?>/number.ext]</li>
 </ul>
 	
 <p>
@@ -369,8 +369,8 @@ if( file_exists("./{$LogFolder}/ImageList-{$SetDay}.txt") ){
 		echo "<div class=\"ImageElements\">\n";
 		echo "<div>投稿日：{$ListElement[1]} ({$ListElement[2]}x{$ListElement[3]} : {$ListElement[4]}KB)</div>\n";
 		echo "<a href=\"{$SaveFolder}/{$ListElement[0]}\" target=\"_blank\"><img src=\"{$ThumbSaveFolder}/{$ListElement[0]}\"></a>\n";
-		echo "<div id=\"InitArea{$i}\"><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$FullURL}{$ListElement[0]}\" readonly></div>\n";
-		echo "<div id=\"InitButtonArea{$i}\"><input type=\"button\" class=\"BlueButton\" onclick=\"urlbox('{$FullURL}{$ListElement[0]}')\" value=\"Add URL\"> ";
+		echo "<div id=\"InitArea{$i}\"><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$FullURL}{$SaveFolder}/{$ListElement[0]}\" readonly></div>\n";
+		echo "<div id=\"InitButtonArea{$i}\"><input type=\"button\" class=\"BlueButton\" onclick=\"urlbox('{$FullURL}{$SaveFolder}/{$ListElement[0]}')\" value=\"Add URL\"> ";
 		echo "<input type=\"button\" class=\"RedButton\" value=\"Delete\" onclick=\"location.href='./delete.php?Arc={$ListElement[0]}'\"></div>\n";
 		echo "<br style=\"clear:left;\">\n";
 		echo "</div>\n\n";

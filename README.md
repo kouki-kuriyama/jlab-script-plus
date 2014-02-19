@@ -1,4 +1,4 @@
-jlab-script-plus
+jlab-script-plus Ver0.01b
 ================
 
 jlab-script-plus は保存期間を設定できるアップローダースクリプトです。  
@@ -43,4 +43,5 @@ CronJobの設定できないサーバの場合は、外部から reg-delete.php 
 バグ修正版の公開等はこのGitHubでのみ行いますので、アップローダー下部にあるGitHubへのリンクは削除されないことをおすすめします。
 
 ##更新履歴
-* Ver0.01 - リリース
+* Ver0.01b - index.phpのフルパス表示の不具合を修正
+* Ver0.01a - リリース
