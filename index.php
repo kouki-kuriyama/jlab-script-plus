@@ -15,6 +15,7 @@ if( file_exists("./static-data/setting.dat") ){
 	$MaxThumbWidth = $SettingData[7];
 	$MaxThumbHeight = $SettingData[8];
 	$DisplayImageCount = $SettingData[9];
+	$SaveDay = $SettingData[10];
 	
 	//削除キーのCookieを読み込む
 	$LocalDeleteKey = $_COOKIE["DelKey"];
@@ -286,7 +287,7 @@ function ToggleURLBox(){
 </form>
 
 <ul style="list-style:none; padding:0; margin:0">
-	<li>JPG GIF PNG / MAX <span style="font-size:18px"><?php echo $MaxSize; ?></span>KB / <span style="font-size:20px">7</span>日間保存 / Admin <?php echo $Admin; ?></li>
+	<li>JPG GIF PNG / MAX <span style="font-size:18px"><?php echo $MaxSize; ?></span>KB / <span style="font-size:20px"><?php echo $SaveDay; ?></span>日間保存 / Admin <?php echo $Admin; ?></li>
 	<li>連投可能 / URL [<?php echo "{$FullURL}{$SaveFolder}"; ?>/number.ext]</li>
 </ul>
 	
@@ -320,7 +321,7 @@ if( $CurrentPage == "" ){
 
 $DayLabel .= "<div class=\"ImagePageLink\">\n";
 $DayLabel .= "<ul style=\"padding:0\">\n";
-for( $PRC = 0; $PRC <= 7; $PRC++ ){
+for( $PRC = 0; $PRC <= $SaveDay; $PRC++ ){
 	if( $DisplayDay == $PRC ){
 		$DayLabel .= "<li style=\"border-bottom:2px solid #ededed\">{$PRC}日前</li>\n";
 	}else{

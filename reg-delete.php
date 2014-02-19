@@ -17,14 +17,14 @@ if( file_exists("./static-data/setting.dat") ){
 	$SaveFolder = $SettingData[2];
 	$ThumbSaveFolder = $SettingData[3];
 	$LogFolder = $SettingData[4];
-
+	$SaveDay = $SettingData[10];
+	
 }else{
 	echo "設定ファイルがありません";
 	exit;
 }
-
-//1週間前(8日前)の日付を取得する
-$DelDate = date("ymd", strtotime("- 8 days"));
+$SnDay = $SaveDay + 1;
+$DelDate = date("ymd", strtotime("- {$SnDay} days"));
 
 //すべてのフォルダをスキャン
 $DeleteImage = scandir("./{$SaveFolder}");
@@ -33,7 +33,7 @@ $DeleteLog = scandir("./{$LogFolder}");
 
 //ログファイルを確認
 if( !file_exists("./{$LogFolder}/ImageList-{$DelDate}.txt")){
-	echo "ログファイルがありません";
+	echo "{$SnDay}日前のログファイルがありません";
 	exit;
 }
 

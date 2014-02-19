@@ -43,6 +43,9 @@ $MaxThumbHeight = '200';
 //1ページに表示する画像の数
 $DisplayImageCount = '10';
 
+//保存日数
+$SaveDay = "7";
+
 //管理者マスターキー
 //削除キーの暗号復元や、管理者による画像の削除に使用します。
 //必ず8文字以上の半角英数字を設定して下さい。
@@ -98,7 +101,8 @@ $SettingData .= $FullURL."\n";
 $SettingData .= $MaxSize."\n";
 $SettingData .= $MaxThumbWidth."\n";
 $SettingData .= $MaxThumbHeight."\n";
-$SettingData .= $DisplayImageCount;
+$SettingData .= $DisplayImageCount."\n";
+$SettingData .= $SaveDay;
 
 file_put_contents( $SettingFile,$SettingData );
 echo "設定が完了しました。\n";
