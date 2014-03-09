@@ -93,7 +93,7 @@ switch( $DeleteMode ){
 		
 	}else{
 	
-		$ResultMessage .= "削除キーが一致しません {$DeleteKeyPure} {$DeleteKey} {$MasterKey}\n";
+		$ResultMessage .= "削除キーが一致しません\n";
 		$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"button\" class=\"BlueButton\" value=\"戻る\" onclick=\"location.href='./'\"></div>\n";
 		break;
 	
@@ -101,7 +101,6 @@ switch( $DeleteMode ){
 	
 	break;
 	default:
-	
 	$ResultMessage .= "<form method=\"post\" action=\"delete.php?Arc={$FileName}\" name=\"DeletePanel\">\n";
 	$ResultMessage .= "画像を削除します。<br>\n";
 	$ResultMessage .= "アップロード時に設定した削除キーを入力してください。\n";
@@ -215,7 +214,7 @@ h1 {
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em; font-size:12px;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.01</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.02a</a></p>
 </div>
 </footer>
 

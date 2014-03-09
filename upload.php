@@ -22,6 +22,8 @@ if( file_exists("./static-data/setting.dat") ){
 	$FullURL = $SettingData[5];
 	$MaxSize = (int)$SettingData[6];
 	$MaxThumbWidth = (int)$SettingData[7];
+	$SaveDay = (int)$SettingData[10];
+	$ManualDelete = (int)$SettingData[11];
 
 }else{
 	$SettingData = false;
@@ -134,6 +136,48 @@ switch( $GetFile ){
 	
 	//削除キーをCookieに保存する
 	setcookie("DelKey",$DeleteKeyPure, time()+60*60*24*14, "/");
+	
+	//もしマニュアル削除が有効な場合は保存期間を超えた画像を削除する
+	if( $ManualDelete == 1 ){
+	
+		//日付を取得する
+		$SnDay = $SaveDay + 1;
+		$DelDate = date("ymd", strtotime("- {$SnDay} days"));
+		
+		//ログファイルを確認
+		if( file_exists("./{$LogFolder}/ImageList-{$DelDate}.txt")){
+		
+			//すべてのフォルダをスキャン
+			$DeleteImage = scandir("./{$SaveFolder}");
+			$DeleteThumb = scandir("./{$ThumbSaveFolder}");
+			$DeleteLog = scandir("./{$LogFolder}");
+		
+			//画像本体を削除
+			foreach($DeleteImage as $IKey => $IValue) {
+				if( preg_match("~^{$DelDate}~",$IValue) ){
+					unlink("./{$SaveFolder}/{$DeleteImage[$IKey]}");
+				}
+			}
+			
+			//サムネイルを削除
+			foreach($DeleteThumb as $TKey => $TValue) {
+				if( preg_match("~^{$DelDate}~",$TValue) ){
+					unlink("./{$ThumbSaveFolder}/{$DeleteThumb[$TKey]}");
+				}
+			}
+			
+			//個別ログファイルを削除
+			foreach($DeleteLog as $LKey => $LValue) {
+				if( preg_match("~^{$DelDate}~",$LValue) ){
+					unlink("./{$LogFolder}/{$DeleteLog[$LKey]}");
+				}
+			}
+			
+			//ImageListログファイルを削除
+			unlink("./{$LogFolder}/ImageList-{$DelDate}.txt");
+			
+		}
+	}
 	
 	$_SESSION["JCK"] = "Complete";
 	$ResultMessage .= "アップロードが完了しました\n";
@@ -259,7 +303,7 @@ h1 {
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em; font-size:12px;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.01</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.02a</a></p>
 </div>
 </footer>
 

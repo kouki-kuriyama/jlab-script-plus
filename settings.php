@@ -2,7 +2,7 @@
 /*
 	
 	・jlab-script-plus settings.php
-	　Version 0.01 / Kouki Kuriyama
+	　Version 0.02a / Kouki Kuriyama
 	　http://github.com/kouki-kuriyama/jlab-script-plus
 	
 	■ jlab-script-plusスクリプト設定ファイル ■
@@ -44,7 +44,13 @@ $MaxThumbHeight = '200';
 $DisplayImageCount = '10';
 
 //保存日数
-$SaveDay = "7";
+$SaveDay = "5";
+
+//マニュアル削除
+//マニュアル削除は、CronJobで reg-delete.php を定期的に動かせない場合や、CronJobのやり方が分からない場合は有効にしてください。
+//有効にすると、今日の1枚目がアップロードされると同時に保存期間を超えた画像が削除されます。reg-delete.php による定期削除は無効になります。
+// 0で無効、1で有効になります。
+$ManualDelete = 1;
 
 //管理者マスターキー
 //削除キーの暗号復元や、管理者による画像の削除に使用します。
@@ -102,7 +108,8 @@ $SettingData .= $MaxSize."\n";
 $SettingData .= $MaxThumbWidth."\n";
 $SettingData .= $MaxThumbHeight."\n";
 $SettingData .= $DisplayImageCount."\n";
-$SettingData .= $SaveDay;
+$SettingData .= $SaveDay."\n";
+$SettingData .= $ManualDelete;
 
 file_put_contents( $SettingFile,$SettingData );
 echo "設定が完了しました。\n";

@@ -4,6 +4,7 @@
 	定期削除用スクリプトです。CronJob等で1日1回アクションを起こすと、１週間前にアップロードされた
 	画像・サムネイル・ログファイルを自動的に削除します。
 	CronJobが使用できない場合は、このスクリプトに直接ブラウザでアクセスしても削除することができます。
+	※マニュアル削除が有効になっている場合はこのスクリプトは動作しません。
 	
 */
 
@@ -18,11 +19,20 @@ if( file_exists("./static-data/setting.dat") ){
 	$ThumbSaveFolder = $SettingData[3];
 	$LogFolder = $SettingData[4];
 	$SaveDay = $SettingData[10];
+	$ManualDelete = $SettingData[11];
 	
 }else{
-	echo "設定ファイルがありません";
+	echo "設定ファイルがありません。";
 	exit;
 }
+
+//マニュアル削除が有効な場合は操作を取り消す
+if( $ManualDelete == 1 ){
+	echo "マニュアル削除が有効になっています。\n";
+	echo "定期削除を有効にする場合はマニュアル削除を無効にしてください。";
+	exit;
+}
+
 $SnDay = $SaveDay + 1;
 $DelDate = date("ymd", strtotime("- {$SnDay} days"));
 

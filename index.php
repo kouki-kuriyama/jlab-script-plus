@@ -393,7 +393,7 @@ if( file_exists("./{$LogFolder}/ImageList-{$SetDay}.txt") ){
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em; font-size:12px;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.01</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.02a</a></p>
 </div>
 </footer>
 
