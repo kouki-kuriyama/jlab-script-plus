@@ -1,4 +1,4 @@
-jlab-script-plus Ver0.01b
+jlab-script-plus Ver0.02a
 ================
   
 **2014年3月9日 jlab-script-plus Ver0.02a を公開しました**  
