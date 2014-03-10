@@ -59,25 +59,33 @@ switch( $GetFile ){
 	
 	//画像のサイズを取得
 	if( $MaxSize < $_FILES['Image']['size'] ){
-		$ResultMessage = "画像が大きすぎます";
+		$ResultMessage .= "画像が大きすぎます";
+		$_SESSION["JCK"] = "Complete";
 		break;
 	}
 	
+	//画像の詳細情報を取得
+	$ImageInfo = getimagesize($_FILES['Image']['tmp_name']);
+	$ImageWidth = $ImageInfo[0];
+	$ImageHeight = $ImageInfo[1];
+	$MIMETypeID = $ImageInfo[2];
+	$MIMEType = $ImageInfo[mime];
+	
 	//画像形式を取得
-	//この設定はあくまで確認です。
-	//完璧なフィルターではありません。
-	$MIMEType = $_FILES['Image']['type'];
-	if(( $MIMEType != "image/jpeg" )&&( $MIMEType != "image/jpg" )&&( $MIMEType != "image/gif" )&&( $MIMEType != "image/png" )){
+	//$_FILES['Image']['type']による判定は不完全の為、廃止しました。
+	// 1=gif, 2=jpeg/jpg, 3=png
+	if(( $MIMETypeID != 1 )&&( $MIMETypeID != 2 )&&( $MIMETypeID != 3 )){
 		$ResultMessage = "この形式のファイルはアップロードできません";
+		$_SESSION["JCK"] = "Complete";
 		break;
 	}
 	
 	//拡張子を設定
-	if( $MIMEType == "image/jpeg" ){
-		$ExtensionID = "jpg";
-	}else if( $MIMEType == "image/gif" ){
+	if( $MIMETypeID == 1 ){
 		$ExtensionID = "gif";
-	}else if( $MIMEType == "image/png" ){
+	}else if( $MIMETypeID == 2 ){
+		$ExtensionID = "jpg";
+	}else if( $MIMETypeID == 3 ){
 		$ExtensionID = "png";
 	}
 
@@ -95,9 +103,6 @@ switch( $GetFile ){
 	$CreateThumb -> width($MaxThumbWidth);
 	$CreateThumb -> save();
 	$ImageThumbPath = "./{$ThumbSaveFolder}/{$FileName}.{$ExtensionID}";
-	
-	//画像サイズを取得
-	list($ImageWidth,$ImageHeight,$MType,$Attr) = getimagesize($ImagePath);
 	
 	//ファイルサイズを取得
 	$FileSizes = round( filesize($ImagePath)/1024 );
@@ -303,7 +308,7 @@ h1 {
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em; font-size:12px;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.02a</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.02b</a></p>
 </div>
 </footer>
 
