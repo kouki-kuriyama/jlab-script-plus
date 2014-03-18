@@ -2,7 +2,7 @@
 /*
 	
 	・jlab-script-plus settings.php
-	　Version 0.02b / Kouki Kuriyama
+	　Version 0.03a / Kouki Kuriyama
 	　http://github.com/kouki-kuriyama/jlab-script-plus
 	
 	■ jlab-script-plusスクリプト設定ファイル ■
@@ -26,7 +26,8 @@ $ThumbSaveFolder = 't';
 $LogFolder = 'd';
 
 //実況ろだの絶対パス(http://から)
-$FullURL = 'http://jikkyo.org/jlab-test/';
+//必ず環境にあったURLに書き換えてください。
+$FullURL = 'http://jikkyo.org/jlab-script-plus/';
 
 //実況ろだのタイトル
 $JlabTitle = '実況ろだTEST';
@@ -52,6 +53,14 @@ $SaveDay = "5";
 // 0で無効、1で有効になります。
 $ManualDelete = 1;
 
+//削除キーの暗号化をパスする
+//サーバーの仕様により削除キーの暗号化をするとエラーが発生する場合に有効にします。
+//無効にした状態でエラーが発生する場合は、サーバーに php-mcrypt がインストールされていない可能性があります。
+//この設定を有効にすると、削除キーはログファイルに平文で保存されます。
+//ログファイルにURL直打ちでログファイルにアクセスすると削除キーが閲覧できてしまう為、必ず付属の htaccessファイルをアップロードして .dat ファイルにアクセスできないようにしてください。
+// 0で無効、1で有効になります。
+$DelKeyByPass = 0;
+
 //管理者マスターキー
 //削除キーの暗号復元や、管理者による画像の削除に使用します。
 //必ず8文字以上の半角英数字を設定して下さい。
@@ -72,27 +81,27 @@ $StaticDataFolder = "./static-data";
 $SettingFile = "{$StaticDataFolder}/setting.dat";
 
 if( !is_dir("{$StaticDataFolder}/") ){
-	echo "Error : static-data フォルダが存在しません。\n";
+	echo "［エラー］static-data フォルダが存在しません。\n";
 	exit;
 }
 
 if( file_exists($SettingFile) ){
-	echo "Error : 設定ファイルを削除して下さい。\n";
+	echo "［エラー］設定ファイルを削除して下さい。\n";
 	exit;
 }
 
 if( !is_dir("./{$SaveFolder}/") ){
-	echo "Error : {$SaveFolder} フォルダが存在しません。\n";
+	echo "［エラー］{$SaveFolder} フォルダが存在しません。\n";
 	exit;
 }
 
 if( !is_dir("./{$ThumbSaveFolder}/") ){
-	echo "Error : {$ThumbSaveFolder} フォルダが存在しません。\n";
+	echo "［エラー］{$ThumbSaveFolder} フォルダが存在しません。\n";
 	exit;
 }
 
 if( !is_dir("./{$LogFolder}/") ){
-	echo "Error : {$LogFolder} フォルダが存在しません。\n";
+	echo "［エラー］{$LogFolder} フォルダが存在しません。\n";
 	exit;
 }
 
@@ -109,11 +118,19 @@ $SettingData .= $MaxThumbWidth."\n";
 $SettingData .= $MaxThumbHeight."\n";
 $SettingData .= $DisplayImageCount."\n";
 $SettingData .= $SaveDay."\n";
-$SettingData .= $ManualDelete;
+$SettingData .= $ManualDelete."\n";
+$SettingData .= $DelKeyByPass;
 
 file_put_contents( $SettingFile,$SettingData );
 echo "設定が完了しました。\n";
-echo "[ masterkey.php ]に設定したマスターキーを記入してアップロードして下さい。";
+if( $DelKeyByPass == 1 ){
+	echo "masterkey.php に設定したマスターキーを記入してアップロードして下さい。\n\n";
+	echo "［注意］削除キーを平文で保存します。\n";
+	echo "　　　　必ず付属の .htaccessファイル を設置してください。";
+}else{
+	echo "masterkey.php に設定したマスターキーを記入してアップロードして下さい。\n";
+}
+
 exit;
 
 ?>

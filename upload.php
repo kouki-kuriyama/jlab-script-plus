@@ -24,6 +24,7 @@ if( file_exists("./static-data/setting.dat") ){
 	$MaxThumbWidth = (int)$SettingData[7];
 	$SaveDay = (int)$SettingData[10];
 	$ManualDelete = (int)$SettingData[11];
+	$DelKeyByPass = (int)$SettingData[12];
 
 }else{
 	$SettingData = false;
@@ -46,8 +47,12 @@ switch( $GetFile ){
 	//削除キーを取得する
 	$DeleteKeyPure = $_POST["DeleteKey"];
 	if( $DeleteKeyPure != "" ){
-		EncInit($MasterKey);
-		$DeleteKey = EncGo($DeleteKeyPure);
+		if( $DelKeyByPass == 1 ){
+			$DeleteKey = $DeleteKeyPure;
+		}else{
+			EncInit($MasterKey);
+			$DeleteKey = EncGo($DeleteKeyPure);
+		}
 	}else{
 		$DeleteKey = "None";
 	}
@@ -308,7 +313,7 @@ h1 {
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em; font-size:12px;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.02b</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03a</a></p>
 </div>
 </footer>
 

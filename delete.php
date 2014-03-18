@@ -18,6 +18,7 @@ if( file_exists("./static-data/setting.dat") ){
 	$ThumbSaveFolder = $SettingData[3];
 	$LogFolder = $SettingData[4];
 	$FullURL = $SettingData[5];
+	$DelKeyByPass = (int)$SettingData[12];
 
 }else{
 	$SettingData = false;
@@ -62,8 +63,12 @@ switch( $DeleteMode ){
 
 	//削除キーを復元する
 	if( $SetDeleteKeyE != "None" ){
-		EncInit($MasterKey);
-		$DeleteKey = DecGo($SetDeleteKeyE);
+		if( $DelKeyByPass == 1 ){
+			$DeleteKey = $SetDeleteKeyE;
+		}else{
+			EncInit($MasterKey);
+			$DeleteKey = DecGo($SetDeleteKeyE);
+		}
 	}else{
 		$ResultMessage .= "削除キーが設定されていない為、削除できません";
 		$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"button\" class=\"BlueButton\" value=\"戻る\" onclick=\"location.href='./'\"></div>\n";
@@ -214,7 +219,7 @@ h1 {
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em; font-size:12px;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.02b</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03a</a></p>
 </div>
 </footer>
 
