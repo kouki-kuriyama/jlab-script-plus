@@ -25,6 +25,11 @@ if( file_exists("./static-data/setting.dat") ){
 	$SaveDay = (int)$SettingData[10];
 	$ManualDelete = (int)$SettingData[11];
 	$DelKeyByPass = (int)$SettingData[12];
+	$FileBaseName = $SettingData[13];
+	
+	if( $FileBaseName == "" ){
+		$FileBaseName = "";
+	}
 
 }else{
 	$SettingData = false;
@@ -58,7 +63,7 @@ switch( $GetFile ){
 	}
 
 	//現在の時間を取得する
-	$FileName = date("ymdHis");
+	$FileName = $FileBaseName.date("ymdHis");
 	$UploadDate = date("ymd");
 	$UploadTime = date("y/m/d H:i:s");
 	
@@ -313,7 +318,7 @@ h1 {
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em; font-size:12px;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03a</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03b</a></p>
 </div>
 </footer>
 

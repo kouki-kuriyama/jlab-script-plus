@@ -2,7 +2,7 @@
 /*
 	
 	・jlab-script-plus settings.php
-	　Version 0.03a / Kouki Kuriyama
+	　Version 0.03b / Kouki Kuriyama
 	　http://github.com/kouki-kuriyama/jlab-script-plus
 	
 	■ jlab-script-plusスクリプト設定ファイル ■
@@ -26,8 +26,10 @@ $ThumbSaveFolder = 't';
 $LogFolder = 'd';
 
 //実況ろだの絶対パス(http://から)
-//必ず環境にあったURLに書き換えてください。
 $FullURL = 'http://jikkyo.org/jlab-script-plus/';
+
+//ファイル名接頭語(不要な場合は空欄にしてください)
+$FileBaseName = 'test';
 
 //実況ろだのタイトル
 $JlabTitle = '実況ろだTEST';
@@ -54,8 +56,7 @@ $SaveDay = "5";
 $ManualDelete = 1;
 
 //削除キーの暗号化をパスする
-//サーバーの仕様により削除キーの暗号化をするとエラーが発生する場合に有効にします。
-//無効にした状態でエラーが発生する場合は、サーバーに php-mcrypt がインストールされていない可能性があります。
+//サーバーの仕様により削除キーの暗号化を有効にするとエラーが発生する場合に有効にします。
 //この設定を有効にすると、削除キーはログファイルに平文で保存されます。
 //ログファイルにURL直打ちでログファイルにアクセスすると削除キーが閲覧できてしまう為、必ず付属の htaccessファイルをアップロードして .dat ファイルにアクセスできないようにしてください。
 // 0で無効、1で有効になります。
@@ -119,7 +120,8 @@ $SettingData .= $MaxThumbHeight."\n";
 $SettingData .= $DisplayImageCount."\n";
 $SettingData .= $SaveDay."\n";
 $SettingData .= $ManualDelete."\n";
-$SettingData .= $DelKeyByPass;
+$SettingData .= $DelKeyByPass."\n";
+$SettingData .= $FileBaseName;
 
 file_put_contents( $SettingFile,$SettingData );
 echo "設定が完了しました。\n";

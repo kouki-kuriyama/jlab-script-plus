@@ -16,6 +16,11 @@ if( file_exists("./static-data/setting.dat") ){
 	$MaxThumbHeight = $SettingData[8];
 	$DisplayImageCount = $SettingData[9];
 	$SaveDay = $SettingData[10];
+	$FileBaseName = $SettingData[13];
+	
+	if( $FileBaseName == "" ){
+		$FileBaseName = "";
+	}
 	
 	//削除キーのCookieを読み込む
 	$LocalDeleteKey = $_COOKIE["DelKey"];
@@ -288,7 +293,7 @@ function ToggleURLBox(){
 
 <ul style="list-style:none; padding:0; margin:0">
 	<li>JPG GIF PNG / MAX <span style="font-size:18px"><?php echo $MaxSize; ?></span>KB / <span style="font-size:20px"><?php echo $SaveDay; ?></span>日間保存 / Admin <?php echo $Admin; ?></li>
-	<li>連投可能 / URL [<?php echo "{$FullURL}{$SaveFolder}"; ?>/number.ext]</li>
+	<li>連投可能 / URL [<?php echo "{$FullURL}{$SaveFolder}/{$FileBaseName}"; ?>+number.ext]</li>
 </ul>
 	
 <p>
@@ -392,8 +397,9 @@ if( file_exists("./{$LogFolder}/ImageList-{$SetDay}.txt") ){
 
 <!-- Footer -->
 <footer>
-<div style="margin:2em 3em; font-size:12px;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03a</a></p>
+<div style="margin:2em 3em; ">
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03b</a></p>
+	<p style="font-size:12px;"><a href="./mega-editor.php">管理者用メガエディター</a></p>
 </div>
 </footer>
 
