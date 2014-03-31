@@ -108,7 +108,7 @@ else if( $LoginEditor == "Login" ){
 		}
 	}
 	
-	//モード処理(画像のダウンロード)
+	//モード処理(ログのダウンロード)
 	else if(( $EditMode == "LogDl" )&&( !empty($ArcData) )){
 		
 		//ファイルが存在するかを確認
@@ -142,8 +142,11 @@ else if( $LoginEditor == "Login" ){
 			//拡張子とファイル名を分割
 			list($RFileName,$ExtensionID) = explode(".",$ArcData);
 			
+			//拡張子と接頭語を取り外す
+			$NDFileName_oq = preg_replace("~[^0-9]~","",$RFileName);
+			
 			//アップロード日を取得する
-			$UploadedDate = substr($RFileName,0,6);
+			$UploadedDate = substr($NDFileName_oq,0,6);
 			
 			//管理者権限で削除
 			unlink("./{$SaveFolder}/{$ArcData}");
@@ -587,7 +590,7 @@ if( $MegaEditor ){
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03b</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03c</a></p>
 </div>
 </footer>
 

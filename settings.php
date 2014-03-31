@@ -2,7 +2,7 @@
 /*
 	
 	・jlab-script-plus settings.php
-	　Version 0.03b / Kouki Kuriyama
+	　Version 0.03c / Kouki Kuriyama
 	　http://github.com/kouki-kuriyama/jlab-script-plus
 	
 	■ jlab-script-plusスクリプト設定ファイル ■
@@ -46,8 +46,14 @@ $MaxThumbHeight = '200';
 //1ページに表示する画像の数
 $DisplayImageCount = '10';
 
+//ドラッグアンドドロップを有効にする
+//ドラッグアンドドロップによるアップロードを有効にするには、PHPのバージョンが 5.4 以降である必要があります。
+//それよりも古いPHPバージョンの場合、自動的に無効になります。
+// 0で無効、1で有効になります。
+$UseDragDrop = 1;
+
 //保存日数
-$SaveDay = "5";
+$SaveDay = '5';
 
 //マニュアル削除
 //マニュアル削除は、CronJobで reg-delete.php を定期的に動かせない場合や、CronJobのやり方が分からない場合は有効にしてください。
@@ -106,6 +112,13 @@ if( !is_dir("./{$LogFolder}/") ){
 	exit;
 }
 
+if(( version_compare(PHP_VERSION,'5.4.0') < 0 )||( $UseDragDrop == 1 )){
+	echo "［情報］PHPバージョンが 5.4.0 以上です。ドラッグアンドドロップによるアップロードは有効です。\n\n";
+}else{
+	$UseDragDrop = 0;
+	echo "［注意］PHPバージョンが 5.4.0 以下の為、ドラッグアンドドロップによるアップロードは無効です。\n\n";
+}
+
 $MaxSize = $MaxSize * 1024;
 
 $SettingData .= $JlabTitle."\n";
@@ -121,16 +134,17 @@ $SettingData .= $DisplayImageCount."\n";
 $SettingData .= $SaveDay."\n";
 $SettingData .= $ManualDelete."\n";
 $SettingData .= $DelKeyByPass."\n";
-$SettingData .= $FileBaseName;
+$SettingData .= $FileBaseName."\n";
+$SettingData .= $UseDragDrop;
 
 file_put_contents( $SettingFile,$SettingData );
-echo "設定が完了しました。\n";
+echo "［情報］設定が完了しました。\n\n";
 if( $DelKeyByPass == 1 ){
-	echo "masterkey.php に設定したマスターキーを記入してアップロードして下さい。\n\n";
+	echo "［情報］masterkey.php に設定したマスターキーを記入してアップロードして下さい。\n\n";
 	echo "［注意］削除キーを平文で保存します。\n";
 	echo "　　　　必ず付属の .htaccessファイル を設置してください。";
 }else{
-	echo "masterkey.php に設定したマスターキーを記入してアップロードして下さい。\n";
+	echo "［情報］masterkey.php に設定したマスターキーを記入してアップロードして下さい。\n";
 }
 
 exit;

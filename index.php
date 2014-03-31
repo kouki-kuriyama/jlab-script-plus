@@ -22,6 +22,12 @@ if( file_exists("./static-data/setting.dat") ){
 		$FileBaseName = "";
 	}
 	
+	if( $SettingData[14] == 1 ){
+		$UseDragDrop = "true";
+	}else{
+		$UseDragDrop = "false";
+	}
+	
 	//削除キーのCookieを読み込む
 	$LocalDeleteKey = $_COOKIE["DelKey"];
 	
@@ -29,6 +35,25 @@ if( file_exists("./static-data/setting.dat") ){
 	session_start();
 	$_SESSION["JCK"] = "Ready";
 	
+	//日付とページを取得する
+	$DisplayDay = $_GET["Day"];
+	$CurrentPage = $_GET["Page"];
+	
+	if(( $DisplayDay == "" )||( $DisplayDay == 0 )){
+		$MetaRobots = "index";
+		$SetDay = date("ymd");
+		$DisplayDay = 0;
+	}else{
+		$MetaRobots = "noindex";
+		$SetDay = date("ymd", strtotime("- {$DisplayDay} days"));
+	}
+	
+	if( $CurrentPage == "" ){
+		$CurrentPage = 1;
+	}else{
+		$MetaRobots = "noindex";
+	}
+
 }else{
 	$SettingData = false;
 	echo "<div style=\"margin:2em 0 2em 3em; color:red; font-size:24px\">設定ファイルがありません！</div>\n\n";
@@ -39,6 +64,7 @@ if( file_exists("./static-data/setting.dat") ){
 <head>
 
 <meta charset="UTF-8">
+<meta name="robots" content="<?php echo $MetaRobots; ?>">
 <title><?php echo $JlabTitle; ?></title>
 
 <!-- StyleSheet -->
@@ -124,6 +150,11 @@ h1 {
 	height:40px;
 	line-height:40px;
 	float:left;
+}
+
+#Preview img {
+	max-width:<?php echo $MaxThumbWidth; ?>px;
+	max-height:<?php echo $MaxThumbHeight; ?>px;
 }
 
 /* --- List --- */
@@ -221,9 +252,10 @@ h1 {
 </style>
 
 <!-- Javascript -->
+<script type="text/javascript" src="./DragDrop.js"></script>
 <script type="text/javascript">
-var DeleteKeyLocal;
 var OpenURLBox = false;
+var UseDragDrop = <?php echo $UseDragDrop; ?>;
 
 function urlbox( ub_cmd ){
 
@@ -259,10 +291,13 @@ function ToggleURLBox(){
 
 }
 
+window.onload = function(){
+	CheckEnableFileAPI();
+}
 </script>
 
 </head>
-<body>
+<body ondragover="onFileOver(event)" ondrop="onFileDrop(event)">
 
 <!-- Header -->
 <header>
@@ -279,15 +314,17 @@ function ToggleURLBox(){
 <iframe src="http://livech.sakura.ne.jp/jlab/ring.html" id="JlabRing" frameborder="no" scrolling="no" style="width:550px; height:100px; position:absolute; left:100%; margin-left:-550px;"></iframe>
 -->
 
-画像を選択して下さい。
+<span id="UploaderMessage">画像をブラウザ上に<strong>ドラッグアンドドロップ</strong>するか、ファイルを選択してください</span>
 <form method="post" enctype="multipart/form-data" id="UploaderPanel" name="ImageUploader" action="upload.php">
+	<p id="Preview"></p>
 	<div style="font-weight:bold">ファイル</div>
-	<div><input type="file" name="Image" id="UploadMedia"></div>
+	<div style="width:400px !important;"><input type="file" name="Image" id="UploadMedia"><span id="LoadedFileName"></span></div>
+	<div style="display:none"><input type="hidden" name="ImageBase64" id="ImageBase64N"></div>
 	<br style="clear:both">
 	<div style="font-weight:bold">削除キー</div>
 	<div><input type="password" id="DeleteKeyBox" name="DeleteKey" value="<?php echo $LocalDeleteKey; ?>" class="TextBox"></div>
 	<br style="clear:both">
-	<div style="width:400px"><input type="submit" class="BlueButton" value="アップロード"> <input type="reset" class="RedButton" value="リセット"></div>
+	<div style="width:400px"><input type="submit" class="BlueButton" value="アップロード"> <input type="button" class="RedButton" value="リセット" onclick="AllClear()"></div>
 	<br style="clear:both">
 </form>
 
@@ -309,20 +346,6 @@ function ToggleURLBox(){
 <!-- ImageList -->
 <div id="ImageList">
 <?php
-
-$DisplayDay = $_GET["Day"];
-$CurrentPage = $_GET["Page"];
-
-if(( $DisplayDay == "" )||( $DisplayDay == 0 )){
-	$SetDay = date("ymd");
-	$DisplayDay = 0;
-}else{
-	$SetDay = date("ymd", strtotime("- {$DisplayDay} days"));
-}
-
-if( $CurrentPage == "" ){
-	$CurrentPage = 1;
-}
 
 $DayLabel .= "<div class=\"ImagePageLink\">\n";
 $DayLabel .= "<ul style=\"padding:0\">\n";
@@ -398,8 +421,7 @@ if( file_exists("./{$LogFolder}/ImageList-{$SetDay}.txt") ){
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em; ">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03b</a></p>
-	<p style="font-size:12px;"><a href="./mega-editor.php">管理者用メガエディター</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03c</a>｜<a href="./mega-editor.php">管理者用メガエディター</a></p>
 </div>
 </footer>
 

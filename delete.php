@@ -52,8 +52,11 @@ switch( $DeleteMode ){
 	//拡張子とファイル名を分割
 	list($RFileName,$ExtensionID) = explode(".",$FileName);
 	
+	//拡張子と接頭語を取り外す
+	$NDFileName_oq = preg_replace("~[^0-9]~","",$RFileName);
+	
 	//アップロード日を取得する
-	$UploadedDate = substr($RFileName,0,6);
+	$UploadedDate = substr($NDFileName_oq,0,6);
 	
 	//DATファイルを取得し、設定されている削除キーを取得する
 	$ImageDatPath = "./{$LogFolder}/{$RFileName}.dat";
@@ -219,7 +222,7 @@ h1 {
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em; font-size:12px;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03b</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03c</a></p>
 </div>
 </footer>
 

@@ -39,13 +39,33 @@ if( file_exists("./static-data/setting.dat") ){
 
 //有効なファイルか確認する
 $GetFile = is_uploaded_file($_FILES['Image']['tmp_name']);
-switch( $GetFile ){
+list($Trash,$DDUploadFile) = explode(",", $_POST["ImageBase64"]);
+
+//ファイルダイアログがらのアップロード
+if(( $GetFile )&&( empty($DDUploadFile) )){
+	$EnableFile = true;
+	$EnableDD = false;
+}
+
+//ドラッグアンドドロップからのアップロード
+else if(( !$GetFile )&&( !empty($DDUploadFile) )){
+	$EnableFile = true;
+	$EnableDD = true;
+}
+
+//それ以外の不明なリクエスト
+else{
+	$EnableFile = false;
+	$EnableDD = false;
+}
+
+switch( $EnableFile ){
 
 	case true:
 	
 	//リファラーとCookieチェック
 	if(( !preg_match("~^{$SettingData[5]}~",$_SERVER["HTTP_REFERER"] ))||( $_SESSION["JCK"] != "Ready" )){
-		$ResultMessage = "パラメーターエラー";
+		header("Location:./");
 		break;
 	}
 
@@ -68,23 +88,38 @@ switch( $GetFile ){
 	$UploadTime = date("y/m/d H:i:s");
 	
 	//画像のサイズを取得
-	if( $MaxSize < $_FILES['Image']['size'] ){
-		$ResultMessage .= "画像が大きすぎます";
-		$_SESSION["JCK"] = "Complete";
-		break;
+	if( $EnableDD ){
+		$UploadingFileBin = base64_decode(str_replace(' ', '+', $DDUploadFile));
+		if( $MaxSize < strlen($UploadingFileBin) ){
+			$ResultTitle = "画像が大きすぎます";
+			$ResultMessage .= "画像が大きすぎます";
+			$_SESSION["JCK"] = "Complete";
+			break;
+		}
+	}else{
+		if( $MaxSize < $_FILES['Image']['size'] ){
+			$ResultTitle = "画像が大きすぎます";
+			$ResultMessage .= "画像が大きすぎます";
+			$_SESSION["JCK"] = "Complete";
+			break;
+		}
 	}
 	
 	//画像の詳細情報を取得
-	$ImageInfo = getimagesize($_FILES['Image']['tmp_name']);
+	if( $EnableDD ){
+		$ImageInfo = getimagesizefromstring($UploadingFileBin);
+	}else{
+		$ImageInfo = getimagesize($_FILES['Image']['tmp_name']);
+	}
+	
 	$ImageWidth = $ImageInfo[0];
 	$ImageHeight = $ImageInfo[1];
 	$MIMETypeID = $ImageInfo[2];
-	$MIMEType = $ImageInfo[mime];
+	$MIMEType = $ImageInfo["mime"];
 	
 	//画像形式を取得
-	//$_FILES['Image']['type']による判定は不完全の為、廃止しました。
-	// 1=gif, 2=jpeg/jpg, 3=png
 	if(( $MIMETypeID != 1 )&&( $MIMETypeID != 2 )&&( $MIMETypeID != 3 )){
+		$ResultTitle = "この形式のファイルはアップロードできません";
 		$ResultMessage = "この形式のファイルはアップロードできません";
 		$_SESSION["JCK"] = "Complete";
 		break;
@@ -98,14 +133,18 @@ switch( $GetFile ){
 	}else if( $MIMETypeID == 3 ){
 		$ExtensionID = "png";
 	}
-
+	
 	//有効期限を取得する(タイムスタンプ形式)
 	//※有効期限は1週間です
 	$ExpirationTime = time()+(7*24*60*60);
 	
 	//画像を保存する
 	$ImagePath = "./{$SaveFolder}/{$FileName}.{$ExtensionID}";
-	move_uploaded_file($_FILES['Image']['tmp_name'],$ImagePath);
+	if( $EnableDD ){
+		file_put_contents($ImagePath,$UploadingFileBin);
+	}else{
+		move_uploaded_file($_FILES['Image']['tmp_name'],$ImagePath);
+	}
 	
 	//サムネイル画像の作成
 	$CreateThumb = new Image($ImagePath);
@@ -195,7 +234,8 @@ switch( $GetFile ){
 	}
 	
 	$_SESSION["JCK"] = "Complete";
-	$ResultMessage .= "アップロードが完了しました\n";
+	$ResultTitle = "アップロードが完了しました";
+	$ResultMessage = "アップロードが完了しました\n";
 	$ResultMessage .= "<div style=\"margin-top:1em\"><img src=\"{$ImageThumbPath}\"></div>\n";
 	$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$FullURL}{$SaveFolder}/{$FileName}.{$ExtensionID}\" readonly></div>\n";
 	
@@ -205,9 +245,10 @@ switch( $GetFile ){
 	
 	//リファラーチェック
 	if( !preg_match("~^{$SettingData[5]}~",$_SERVER["HTTP_REFERER"] )){
-		$ResultMessage = "パラメーターエラー";
+		header("Location:./");
 		break;
 	}else{
+		$ResultTitle = "画像がありません";
 		$ResultMessage = "画像がありません\n";
 	}
 	
@@ -221,7 +262,7 @@ switch( $GetFile ){
 
 <meta charset="UTF-8">
 <meta name="robots" content="noindex">
-<title><?php echo "{$ResultMessage} : {$JlabTitle}"; ?></title>
+<title><?php echo "{$ResultTitle} : {$JlabTitle}"; ?></title>
 
 <!-- StyleSheet -->
 <style type="text/css">
@@ -318,7 +359,7 @@ h1 {
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em; font-size:12px;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03b</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03c</a></p>
 </div>
 </footer>
 
