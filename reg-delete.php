@@ -49,21 +49,21 @@ if( !file_exists("./{$LogFolder}/ImageList-{$DelDate}.txt")){
 
 //削除する
 foreach($DeleteImage as $IKey => $IValue) {
-	if( preg_match("~^{$DelDate}~",$IValue) ){
+	if( preg_match("~^(.*){$DelDate}~",$IValue) ){
 		unlink("./{$SaveFolder}/{$DeleteImage[$IKey]}");
 		echo "- 削除 : {$DeleteImage[$IKey]}\n";
 	}
 }
 
 foreach($DeleteThumb as $TKey => $TValue) {
-	if( preg_match("~^{$DelDate}~",$TValue) ){
+	if( preg_match("~^(.*){$DelDate}~",$TValue) ){
 		unlink("./{$ThumbSaveFolder}/{$DeleteThumb[$TKey]}");
 		echo "- 削除 : {$DeleteThumb[$TKey]}\n";
 	}
 }
 
 foreach($DeleteLog as $LKey => $LValue) {
-	if( preg_match("~^{$DelDate}~",$LValue) ){
+	if( preg_match("~^(.*){$DelDate}~",$LValue) ){
 		unlink("./{$LogFolder}/{$DeleteLog[$LKey]}");
 		echo "- 削除 : {$DeleteLog[$LKey]}\n";
 	}
