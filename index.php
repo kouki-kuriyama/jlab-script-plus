@@ -39,13 +39,29 @@ if( file_exists("./static-data/setting.dat") ){
 	$DisplayDay = $_GET["Day"];
 	$CurrentPage = $_GET["Page"];
 	
-	if(( $DisplayDay == "" )||( $DisplayDay == 0 )){
-		$MetaRobots = "index";
+	//今日を表示
+	if( $DisplayDay == "today" ){
+		$MetaRobots = "noindex";
 		$SetDay = date("ymd");
-		$DisplayDay = 0;
-	}else{
+		$LogFileName = "./{$LogFolder}/ImageList-{$SetDay}.txt";
+	}
+	
+	//一覧表示
+	else if(( $DisplayDay == "" )||( $DisplayDay == "list" )){
+		if( $DisplayDay == "" ){
+			$MetaRobots = "index";
+		}else{
+			$MetaRobots = "noindex";
+		}
+		$DisplayDay = "list";
+		$LogFileName = "./{$LogFolder}/ImageList-all.txt";
+	}
+	
+	//指定日を表示
+	else{
 		$MetaRobots = "noindex";
 		$SetDay = date("ymd", strtotime("- {$DisplayDay} days"));
+		$LogFileName = "./{$LogFolder}/ImageList-{$SetDay}.txt";
 	}
 	
 	if( $CurrentPage == "" ){
@@ -191,15 +207,21 @@ h1 {
 	border-bottom:1px solid #ccc;
 }
 
-.ImageElements img {
-	float:left;
-	margin-right:10px;
-	max-width:<?php echo $MaxThumbWidth; ?>px;
-	max-height:<?php echo $MaxThumbHeight; ?>px;
-}
-
 .ImageElements div {
 	padding-bottom:10px;
+}
+
+.InitImage {
+	width:<?php echo $MaxThumbWidth; ?>px;
+	float:left;
+	margin:0px 10px 0px 0px;
+	padding:0px !important;
+	text-align:center;
+}
+
+.InitImage img {
+	max-width:<?php echo $MaxThumbWidth; ?>px;
+	max-height:<?php echo $MaxThumbHeight; ?>px;
 }
 
 /* --- URLBox --- */
@@ -347,27 +369,41 @@ window.onload = function(){
 <div id="ImageList">
 <?php
 
-$DayLabel .= "<div class=\"ImagePageLink\">\n";
+$DayLabel = "<div class=\"ImagePageLink\">\n";
 $DayLabel .= "<ul style=\"padding:0\">\n";
-for( $PRC = 0; $PRC <= $SaveDay; $PRC++ ){
+
+//一覧のラベルを表示
+if(( $DisplayDay == "" )||( $DisplayDay == "list" )){
+	$DayLabel .= "<li style=\"border-bottom:2px solid #ededed\">一覧</li>\n";
+}else{
+	$DayLabel .= "<a href=\"./\"><li>一覧</li></a>\n";
+}
+
+if( $DisplayDay == "today" ){
+	$DayLabel .= "<li style=\"border-bottom:2px solid #ededed\">今日</li>\n";
+}else{
+	$DayLabel .= "<a href=\"./?Day=today\"><li>今日</li></a>\n";
+}
+
+for( $PRC = 1; $PRC <= $SaveDay; $PRC++ ){
 	if( $DisplayDay == $PRC ){
 		$DayLabel .= "<li style=\"border-bottom:2px solid #ededed\">{$PRC}日前</li>\n";
 	}else{
 		$DayLabel .= "<a href=\"?Day={$PRC}\"><li>{$PRC}日前</li></a>\n";
 	}
 }
+
 $DayLabel .= "</ul>\n";
 $DayLabel .= "</div>\n\n";
-$DayLabel = str_replace("0日前", "今日", $DayLabel);
 
-if( file_exists("./{$LogFolder}/ImageList-{$SetDay}.txt") ){
+if( file_exists($LogFileName) ){
 
-	$ListIn = file_get_contents("./{$LogFolder}/ImageList-{$SetDay}.txt");
+	$ListIn = file_get_contents($LogFileName);
 	$ImageList = explode("\n",$ListIn);
 	$ImageCount = count($ImageList);
 	array_unshift($ImageList,"IMGLIST");
 
-	$PageLabel .= "<div class=\"ImagePageLink\">\n";
+	$PageLabel = "<div class=\"ImagePageLink\">\n";
 	$PageLabel .= "<ul style=\"padding:0\">\n";
 	$PageCount = ceil($ImageCount/$DisplayImageCount);
 	for( $PGC = 1; $PGC <= $PageCount; $PGC++ ){
@@ -377,6 +413,7 @@ if( file_exists("./{$LogFolder}/ImageList-{$SetDay}.txt") ){
 			$PageLabel .= "<a href=\"?Day={$DisplayDay}&Page={$PGC}\"><li>{$PGC}</li></a>\n";
 		}
 	}
+	
 	$PageLabel .= "</ul>\n";
 	$PageLabel .= "</div>\n\n";
 	
@@ -397,16 +434,36 @@ if( file_exists("./{$LogFolder}/ImageList-{$SetDay}.txt") ){
 		//HTML出力
 		echo "<div class=\"ImageElements\">\n";
 		echo "<div>投稿日：{$ListElement[1]} ({$ListElement[2]}x{$ListElement[3]} : {$ListElement[4]}KB)</div>\n";
-		echo "<a href=\"{$SaveFolder}/{$ListElement[0]}\" target=\"_blank\"><img src=\"{$ThumbSaveFolder}/{$ListElement[0]}\"></a>\n";
-		echo "<div id=\"InitArea{$i}\"><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$FullURL}{$SaveFolder}/{$ListElement[0]}\" readonly></div>\n";
-		echo "<div id=\"InitButtonArea{$i}\"><input type=\"button\" class=\"BlueButton\" onclick=\"urlbox('{$FullURL}{$SaveFolder}/{$ListElement[0]}')\" value=\"Add URL\"> ";
+		echo "<a href=\"{$SaveFolder}/{$ListElement[0]}\" target=\"_blank\"><div class=\"InitImage\"><img src=\"{$ThumbSaveFolder}/{$ListElement[0]}\"></div></a>\n";
+		echo "<div><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$FullURL}{$SaveFolder}/{$ListElement[0]}\" readonly></div>\n";
+		echo "<div><input type=\"button\" class=\"BlueButton\" onclick=\"urlbox('{$FullURL}{$SaveFolder}/{$ListElement[0]}')\" value=\"Add URL\"> ";
 		echo "<input type=\"button\" class=\"RedButton\" value=\"Delete\" onclick=\"location.href='./delete.php?Arc={$ListElement[0]}'\"></div>\n";
 		echo "<br style=\"clear:left;\">\n";
 		echo "</div>\n\n";
 
 	}
 	
+	$PrevLinkNum = $CurrentPage-1;
+	$NextLinkNum = $CurrentPage+1;
+	if( $PrevLinkNum != 0 ){
+		$PrevLink = "<a class=\"ImagePageLinkLF\" href=\"?Day={$DisplayDay}&Page={$PrevLinkNum}\"><li style=\"width:70px\">Prev</li></a>\n";
+	}else{
+		$PrevLink = "";
+	}
+	if( $PageCount >= $NextLinkNum ){
+		$NextLink = "<a class=\"ImagePageLinkLF\" href=\"?Day={$DisplayDay}&Page={$NextLinkNum}\"><li style=\"width:70px\">Next</li></a>\n";
+	}else{
+		$NextLink = "";
+	}
+	
+	echo "<div class=\"ImagePageLink\">\n";
+	echo "<ul style=\"padding:0\">\n";
+	echo $PrevLink;
+	echo $NextLink;
+	echo "</ul>\n";
+	echo "</div>\n\n";
 	echo $PageLabel;
+
 
 }else{
 
@@ -421,7 +478,7 @@ if( file_exists("./{$LogFolder}/ImageList-{$SetDay}.txt") ){
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em; ">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03c</a>｜<a href="./mega-editor.php">管理者用メガエディター</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03d</a>｜<a href="./mega-editor.php">管理者用メガエディター</a></p>
 </div>
 </footer>
 

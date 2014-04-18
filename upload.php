@@ -42,13 +42,13 @@ $GetFile = is_uploaded_file($_FILES['Image']['tmp_name']);
 list($Trash,$DDUploadFile) = explode(",", $_POST["ImageBase64"]);
 
 //ファイルダイアログがらのアップロード
-if(( $GetFile )&&( empty($DDUploadFile) )){
+if(( $GetFile )&&( $DDUploadFile == "" )){
 	$EnableFile = true;
 	$EnableDD = false;
 }
 
 //ドラッグアンドドロップからのアップロード
-else if(( !$GetFile )&&( !empty($DDUploadFile) )){
+else if(( !$GetFile )&&( $DDUploadFile != "" )){
 	$EnableFile = true;
 	$EnableDD = true;
 }
@@ -172,24 +172,20 @@ switch( $EnableFile ){
 	
 	//画像一覧を取得する
 	$ImageListPath = "./{$LogFolder}/ImageList-{$UploadDate}.txt";
+	$ImageListALLPath = "./{$LogFolder}/ImageList-all.txt";
 	
-	//画像一覧に追加する（Lock対応版）
+	//画像一覧に追加する（Lock対応）
 	$ImageList = file_get_contents($ImageListPath);
+	$ImageListALL = file_get_contents($ImageListALLPath);
 	$ImageList_array = explode("\n",$ImageList);
-	$ImageListOpen = fopen($ImageListPath,"w");
-	flock($ImageListOpen,LOCK_EX);
-	
+	$ImageListALL_array = explode("\n",$ImageListALL);
 	if( $ImageList_array[0] == "" ){
-		fwrite($ImageListOpen, "{$FileName}.{$ExtensionID}#{$UploadTime}#{$ImageWidth}#{$ImageHeight}#{$FileSizes}");
+		$NewLine = "{$FileName}.{$ExtensionID}#{$UploadTime}#{$ImageWidth}#{$ImageHeight}#{$FileSizes}";
+		file_put_contents($ImageListPath,$NewLine);
 	}else{
-		fwrite($ImageListOpen, "{$FileName}.{$ExtensionID}#{$UploadTime}#{$ImageWidth}#{$ImageHeight}#{$FileSizes}\n");
-		fwrite($ImageListOpen, implode("\n",$ImageList_array));
+		$NewLine = "{$FileName}.{$ExtensionID}#{$UploadTime}#{$ImageWidth}#{$ImageHeight}#{$FileSizes}\n";
+		file_put_contents($ImageListPath,$NewLine.implode("\n",$ImageList_array));
 	}
-	flock($ImageListOpen, LOCK_UN);
-	fclose($ImageListOpen);
-	
-	//削除キーをCookieに保存する
-	setcookie("DelKey",$DeleteKeyPure, time()+60*60*24*14, "/");
 	
 	//もしマニュアル削除が有効な場合は保存期間を超えた画像を削除する
 	if( $ManualDelete == 1 ){
@@ -208,21 +204,21 @@ switch( $EnableFile ){
 		
 			//画像本体を削除
 			foreach($DeleteImage as $IKey => $IValue) {
-				if( preg_match("~^{$DelDate}~",$IValue) ){
+				if( preg_match("~^(.*){$DelDate}~",$IValue) ){
 					unlink("./{$SaveFolder}/{$DeleteImage[$IKey]}");
 				}
 			}
 			
 			//サムネイルを削除
 			foreach($DeleteThumb as $TKey => $TValue) {
-				if( preg_match("~^{$DelDate}~",$TValue) ){
+				if( preg_match("~^(.*){$DelDate}~",$TValue) ){
 					unlink("./{$ThumbSaveFolder}/{$DeleteThumb[$TKey]}");
 				}
 			}
 			
 			//個別ログファイルを削除
 			foreach($DeleteLog as $LKey => $LValue) {
-				if( preg_match("~^{$DelDate}~",$LValue) ){
+				if( preg_match("~^(.*){$DelDate}~",$LValue) ){
 					unlink("./{$LogFolder}/{$DeleteLog[$LKey]}");
 				}
 			}
@@ -230,8 +226,26 @@ switch( $EnableFile ){
 			//ImageListログファイルを削除
 			unlink("./{$LogFolder}/ImageList-{$DelDate}.txt");
 			
+			//ImageList-allログから削除する
+			foreach($ImageListALL_array as $LAKey => $LAValue) {
+				if( preg_match("~^(.*){$DelDate}~",$LAValue) ){
+					unset($ImageListALL_array[$LAKey]);
+				}
+			}
 		}
 	}
+	
+	//画像一覧(ALL)に保存する
+	if( $ImageListALL_array[0] == "" ){
+		$NewLineALL = "{$FileName}.{$ExtensionID}#{$UploadTime}#{$ImageWidth}#{$ImageHeight}#{$FileSizes}";
+		file_put_contents($ImageListALLPath,$NewLineALL);
+	}else{
+		$NewLineALL = "{$FileName}.{$ExtensionID}#{$UploadTime}#{$ImageWidth}#{$ImageHeight}#{$FileSizes}\n";
+		file_put_contents($ImageListALLPath,$NewLineALL.implode("\n",$ImageListALL_array));
+	}
+	
+	//削除キーをCookieに保存する
+	setcookie("DelKey",$DeleteKeyPure, time()+60*60*24*14, "/");
 	
 	$_SESSION["JCK"] = "Complete";
 	$ResultTitle = "アップロードが完了しました";
@@ -358,8 +372,8 @@ h1 {
 
 <!-- Footer -->
 <footer>
-<div style="margin:2em 3em; font-size:12px;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03c</a></p>
+<div style="margin:2em 3em;">
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03d</a></p>
 </div>
 </footer>
 

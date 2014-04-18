@@ -26,12 +26,13 @@ if( file_exists("./static-data/setting.dat") ){
 	exit;
 }
 
-//マニュアル削除が有効な場合は操作を取り消す
+/*//マニュアル削除が有効な場合は操作を取り消す
 if( $ManualDelete == 1 ){
 	echo "マニュアル削除が有効になっています。\n";
 	echo "定期削除を有効にする場合はマニュアル削除を無効にしてください。";
 	exit;
 }
+*/
 
 $SnDay = $SaveDay + 1;
 $DelDate = date("ymd", strtotime("- {$SnDay} days"));
@@ -71,7 +72,19 @@ foreach($DeleteLog as $LKey => $LValue) {
 
 unlink("./{$LogFolder}/ImageList-{$DelDate}.txt");
 echo "- 削除 : ImageList-{$DelDate}.txt\n";
-echo "- 完了";
 
+$ImageListALLPath = "./{$LogFolder}/ImageList-all.txt";
+$ImageListALL = file_get_contents($ImageListALLPath);
+$ImageListALL_array = explode("\n",$ImageListALL);
+foreach($ImageListALL_array as $LAKey => $LAValue) {
+	if( preg_match("~^(.*){$DelDate}~",$LAValue) ){
+		unset($ImageListALL_array[$LAKey]);
+	}
+}
+
+file_put_contents($ImageListALLPath,implode("\n",$ImageListALL_array));
+echo "- 一覧ログ整合 : ImageList-all.txt\n";
+
+echo "- 完了";
 exit;
 ?>

@@ -84,7 +84,7 @@ switch( $DeleteMode ){
 		unlink("./{$ThumbSaveFolder}/{$FileName}");
 		unlink("./{$LogFolder}/{$RFileName}.dat");
 	
-		//一覧から削除する
+		//日付一覧から削除する
 		$ImageList = file_get_contents("./{$LogFolder}/ImageList-{$UploadedDate}.txt");
 		$ImageList = explode("\n",$ImageList);
 		foreach($ImageList as $key => $value) {
@@ -94,6 +94,17 @@ switch( $DeleteMode ){
 		}
 		unset($ImageList[$key]);
 		file_put_contents("./{$LogFolder}/ImageList-{$UploadedDate}.txt",implode("\n",$ImageList));
+		
+		//一覧から削除する
+		$ImageListALL = file_get_contents("./{$LogFolder}/ImageList-all.txt");
+		$ImageListALL = explode("\n",$ImageListALL);
+		foreach($ImageListALL as $key => $value) {
+			if( preg_match("~{$FileName}~",$value) ) {
+				break;
+			}
+		}
+		unset($ImageListALL[$key]);
+		file_put_contents("./{$LogFolder}/ImageList-all.txt",implode("\n",$ImageListALL));
 		
 		$ResultMessage .= "{$FileName} は削除されました\n";
 		$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"button\" class=\"BlueButton\" value=\"完了\" onclick=\"location.href='./'\"></div>\n";
@@ -221,8 +232,8 @@ h1 {
 
 <!-- Footer -->
 <footer>
-<div style="margin:2em 3em; font-size:12px;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03c</a></p>
+<div style="margin:2em 3em;">
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03d</a></p>
 </div>
 </footer>
 
