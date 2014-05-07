@@ -165,6 +165,7 @@ h1 {
 	position:absolute;
 	top:0px;
 	left:0px;
+	z-index:5;
 	background:#000;
 	color:#fff;
 	filter: alpha(opacity=70);
