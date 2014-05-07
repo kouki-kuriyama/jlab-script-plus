@@ -2,7 +2,7 @@
 /*
 	
 	・jlab-script-plus settings.php
-	　Version 0.03d / Kouki Kuriyama
+	　Version 0.03e / Kouki Kuriyama
 	　http://github.com/kouki-kuriyama/jlab-script-plus
 	
 	■ jlab-script-plusスクリプト設定ファイル ■
@@ -26,10 +26,10 @@ $ThumbSaveFolder = 't';
 $LogFolder = 'd';
 
 //実況ろだの絶対パス(http://から)
-$FullURL = 'http://jikkyo.org/jlab-script-plus/';
+$FullURL = 'http://www1.kuri.kanagawa.jp/jlab-script-plus/';
 
 //ファイル名接頭語(不要な場合は空欄にしてください)
-$FileBaseName = 'test';
+$FileBaseName = 'developer';
 
 //実況ろだのタイトル
 $JlabTitle = '実況ろだTEST';

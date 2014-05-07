@@ -157,6 +157,30 @@ h1 {
 	border-bottom:1px solid #ccc;
 }
 
+#UploaderCurtain {
+	width:100%;
+	height:100%;
+	text-align:center;
+	display:none;
+	position:absolute;
+	top:0px;
+	left:0px;
+	background:#000;
+	color:#fff;
+	filter: alpha(opacity=70);
+	-moz-opacity:0.7;
+	opacity:0.7;
+}
+
+#JlabRing {
+	width:550px;
+	height:130px;
+	position:absolute;
+	top:0px;
+	left:100%;
+	margin-left:-550px;
+}
+
 #UploaderPanel {
 	margin:10px 0;
 }
@@ -313,6 +337,11 @@ function ToggleURLBox(){
 
 }
 
+function ImageUploading(){
+	document.getElementById("UploaderCurtain").style.display = "block";
+	document.ImageUploader.submit();
+}
+
 window.onload = function(){
 	CheckEnableFileAPI();
 }
@@ -332,8 +361,14 @@ window.onload = function(){
 <!-- Uploader -->
 <div id="Uploader">
 
-<!-- JlabRing - 実況ろだに参加する際は下のコメントアウトを除去して下さい
-<iframe src="http://livech.sakura.ne.jp/jlab/ring.html" id="JlabRing" frameborder="no" scrolling="no" style="width:550px; height:100px; position:absolute; left:100%; margin-left:-550px;"></iframe>
+<!-- Curtain -->
+<div id="UploaderCurtain">
+<div style="margin-top:30px; font-size:18px;">アップロード中です...</div>
+</div>
+
+<!-- JlabRing : 実況ろだに参加する際は下のコメントアウトを除去して下さい -->
+<!--
+<iframe src="http://livech.sakura.ne.jp/jlab/ring.html" id="JlabRing" frameborder="no" scrolling="no"></iframe>
 -->
 
 <span id="UploaderMessage">画像をブラウザ上に<strong>ドラッグアンドドロップ</strong>するか、ファイルを選択してください</span>
@@ -346,7 +381,7 @@ window.onload = function(){
 	<div style="font-weight:bold">削除キー</div>
 	<div><input type="password" id="DeleteKeyBox" name="DeleteKey" value="<?php echo $LocalDeleteKey; ?>" class="TextBox"></div>
 	<br style="clear:both">
-	<div style="width:400px"><input type="submit" class="BlueButton" value="アップロード"> <input type="button" class="RedButton" value="リセット" onclick="AllClear()"></div>
+	<div style="width:400px"><input type="button" class="BlueButton" value="アップロード" onclick="ImageUploading()"> <input type="button" class="RedButton" value="リセット" onclick="AllClear()"></div>
 	<br style="clear:both">
 </form>
 
@@ -478,7 +513,7 @@ if( file_exists($LogFileName) ){
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em; ">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03d</a>｜<a href="./mega-editor.php">管理者用メガエディター</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03e</a>｜<a href="./mega-editor.php">管理者用メガエディター</a></p>
 </div>
 </footer>
 
