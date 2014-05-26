@@ -26,6 +26,7 @@ if( file_exists("./static-data/setting.dat") ){
 	$ManualDelete = (int)$SettingData[11];
 	$DelKeyByPass = (int)$SettingData[12];
 	$FileBaseName = $SettingData[13];
+	$TransportURL = $SettingData[15];
 	
 	if( $FileBaseName == "" ){
 		$FileBaseName = "";
@@ -36,6 +37,12 @@ if( file_exists("./static-data/setting.dat") ){
 	echo "<div style=\"margin:30px; color:red; font-size:24px\">設定ファイルがありません！</div>\n\n";
 	exit;
 }
+
+//アップロードが他プロセスと重複していないか確認
+//重複してロックが掛けられない場合は、ロックが掛かるまで待機
+$UpdManageFile = "./static-data/upd-manage.dat";
+$ProcessLocking = fopen($UpdManageFile,"a");
+flock($ProcessLocking,LOCK_EX);
 
 //有効なファイルか確認する
 $GetFile = is_uploaded_file($_FILES['Image']['tmp_name']);
@@ -135,7 +142,6 @@ switch( $EnableFile ){
 	}
 	
 	//有効期限を取得する(タイムスタンプ形式)
-	//※有効期限は1週間です
 	$ExpirationTime = time()+(7*24*60*60);
 	
 	//画像を保存する
@@ -174,7 +180,7 @@ switch( $EnableFile ){
 	$ImageListPath = "./{$LogFolder}/ImageList-{$UploadDate}.txt";
 	$ImageListALLPath = "./{$LogFolder}/ImageList-all.txt";
 	
-	//画像一覧に追加する（Lock対応）
+	//画像一覧に追加する
 	$ImageList = file_get_contents($ImageListPath);
 	$ImageListALL = file_get_contents($ImageListALLPath);
 	$ImageList_array = explode("\n",$ImageList);
@@ -251,7 +257,7 @@ switch( $EnableFile ){
 	$ResultTitle = "アップロードが完了しました";
 	$ResultMessage = "アップロードが完了しました\n";
 	$ResultMessage .= "<div style=\"margin-top:1em\"><img src=\"{$ImageThumbPath}\"></div>\n";
-	$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$FullURL}{$SaveFolder}/{$FileName}.{$ExtensionID}\" readonly></div>\n";
+	$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$TransportURL}{$FileName}.{$ExtensionID}\" readonly></div>\n";
 	
 	break;
 	
@@ -269,6 +275,10 @@ switch( $EnableFile ){
 	break;
 
 }
+
+//ロックを解除して開放する
+fclose($ProcessLocking);
+
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -278,80 +288,9 @@ switch( $EnableFile ){
 <meta name="robots" content="noindex">
 <title><?php echo "{$ResultTitle} : {$JlabTitle}"; ?></title>
 
-<!-- StyleSheet -->
-<style type="text/css">
-
-/* --- Main --- */
-body {
-	width:100%;
-	margin:0;
-	padding:0;
-	padding-bottom:225px !important;
-	background:#f5f5f5;
-	color:#000;
-	font-family:Helvetica,"Meiryo UI",sans-serif;
-	font-size:14px;
-	text-align:left;
-}
-
-img { border:0px; }
-
-a { color:#444; }
-a:hover { text-decoration:none; }
-
-input { margin:0 }
-
-h1 {
-	margin:0;
-	padding:1em 2em;
-	color:#444;
-	font-size:24px;
-}
-
-#ResultP {
-	padding:2em 0 2em 3em;
-	background:#fff;
-	border-top:1px solid #ccc;
-	border-bottom:1px solid #ccc;
-	text-align:center;
-}
-
-/* --- Input --- */
-.TextBox {
-	height:24px;
-	padding:3px;
-	background:#ffffff;
-	border:2px solid #9c9c9c;
-	border-radius:0px;
-	outline:none;
-	transition:0.5s ease;
-	-webkit-transition:0.5s ease;
-	-moz-transition:0.5s ease;
-}
-
-.TextBox:hover { box-shadow:0 0 7px #9c9c9c; }
-
-.BlueButton,.RedButton {
-	width:150px;
-	height:30px;
-	outline:none;
-	border:0px;
-	border-radius:0px;
-	color:#fff;
-	text-shadow:0 0 5px #fff;
-	transition:0.5s ease;
-	-webkit-transition:0.5s ease;
-	-moz-transition:0.5s ease;
-}
-.BlueButton { background:#004ab2; }
-.BlueButton:hover { box-shadow:0 0 7px #004ab2; }
-.BlueButton:active { box-shadow:0 0 0 #004ab2; }
-
-.RedButton { background:#ff4f4f; }
-.RedButton:hover { box-shadow:0 0 7px #ff4f4f; }
-.RedButton:active { box-shadow:0 0 0 #ff4f4f; }
-
-</style>
+<!-- Default CSS/Javascript -->
+<link type="text/css" rel="stylesheet" href="./static-data/jlab-script-plus.css">
+<script type="text/javascript" src="./static-data/jlab-script-plus.js"></script>
 
 </head>
 <body>
@@ -364,19 +303,20 @@ h1 {
 <!-- Contents -->
 <div id="Contents">
 
-<!-- Result -->
-<div id="ResultP">
-<?php echo "{$ResultMessage}\n"; ?>
-<div style="margin-top:1em"><input type="button" class="BlueButton" value="完了" onclick="location.href='./'"></div>
+	<!-- Result -->
+	<div id="ResultP">
+	<?php echo "{$ResultMessage}\n"; ?>
+	<div style="margin-top:1em"><input type="button" class="BlueButton" value="完了" onclick="location.href='./'"></div>
+	</div>
+
 </div>
 
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03e</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank"><script type="text/javascript">document.write(VersionNumber);</script></a></p>
 </div>
 </footer>
-
 </body>
 </html>
 	

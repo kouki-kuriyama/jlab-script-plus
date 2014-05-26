@@ -2,7 +2,7 @@
 /*
 	
 	・jlab-script-plus settings.php
-	　Version 0.03e / Kouki Kuriyama
+	　Version 0.04a / Kouki Kuriyama
 	　http://github.com/kouki-kuriyama/jlab-script-plus
 	
 	■ jlab-script-plusスクリプト設定ファイル ■
@@ -26,10 +26,10 @@ $ThumbSaveFolder = 't';
 $LogFolder = 'd';
 
 //実況ろだの絶対パス(http://から)
-$FullURL = 'http://www1.kuri.kanagawa.jp/jlab-script-plus/';
+$FullURL = 'http://jikkyo.org/jlab-script-plus/';
 
 //ファイル名接頭語(不要な場合は空欄にしてください)
-$FileBaseName = 'developer';
+$FileBaseName = 'test';
 
 //実況ろだのタイトル
 $JlabTitle = '実況ろだTEST';
@@ -67,6 +67,12 @@ $ManualDelete = 1;
 //ログファイルにURL直打ちでログファイルにアクセスすると削除キーが閲覧できてしまう為、必ず付属の htaccessファイルをアップロードして .dat ファイルにアクセスできないようにしてください。
 // 0で無効、1で有効になります。
 $DelKeyByPass = 0;
+
+//画像配信URLの変更
+//mod_rewrite機能を使って画像配信URLを変更するときに設定します。特に使用しない場合は空欄にしてください。
+//mod_rewite機能の詳しい説明についてはApacheサイト等でご覧ください。
+//http://jikkyo.org/jlab-script-plus/s/123.jpg を http://jikkyo.org/img/123.jpg にrewriteして配信するには設定に $RewriteURL = 'http://jikkyo.org/img/'; と設定してください。
+$RewriteURL = '';
 
 //管理者マスターキー
 //削除キーの暗号復元や、管理者による画像の削除に使用します。
@@ -119,9 +125,15 @@ if(( version_compare(PHP_VERSION,'5.4.0') < 0 )||( $UseDragDrop == 1 )){
 	echo "［注意］PHPバージョンが 5.4.0 以下の為、ドラッグアンドドロップによるアップロードは無効です。\n\n";
 }
 
+if( empty( $RewriteURL )){
+	$TransportURL = "{$FullURL}{$SaveFolder}/";
+}else{
+	$TransportURL = $RewriteURL;
+}
+
 $MaxSize = $MaxSize * 1024;
 
-$SettingData .= $JlabTitle."\n";
+$SettingData = $JlabTitle."\n";
 $SettingData .= $Admin."\n";
 $SettingData .= $SaveFolder."\n";
 $SettingData .= $ThumbSaveFolder."\n";
@@ -135,7 +147,8 @@ $SettingData .= $SaveDay."\n";
 $SettingData .= $ManualDelete."\n";
 $SettingData .= $DelKeyByPass."\n";
 $SettingData .= $FileBaseName."\n";
-$SettingData .= $UseDragDrop;
+$SettingData .= $UseDragDrop."\n";
+$SettingData .= $TransportURL;
 
 file_put_contents( $SettingFile,$SettingData );
 echo "［情報］設定が完了しました。\n\n";

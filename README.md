@@ -1,7 +1,7 @@
-jlab-script-plus Ver0.03e
+jlab-script-plus Ver0.04a
 ================
   
-**2014年5月8日 jlab-script-plus Ver0.03e を公開しました**  
+**2014年5月27日 jlab-script-plus Ver0.04a を公開しました**  
   
 jlab-script-plus は保存期間を設定できるアップローダースクリプトです。  
 全体の投稿数により削除される仕組みでは無いため、確実に設定した間は閲覧できる状態にしたい場合や長い間保存しておきたくない画像などの公開に向いています。  
@@ -25,6 +25,9 @@ jlab-script-plus は保存期間を設定できるアップローダースクリ
 * /static-data [707]
  - Encryption.php
  - Thumb.php
+ - jlab-script-plus.css
+ - jlab-script-plus.js
+ - upd-manage.dat [707]
 * index.php
 * upload.php
 * delete.php
@@ -32,8 +35,9 @@ jlab-script-plus は保存期間を設定できるアップローダースクリ
 * mega-editor.php
 * reg-delete.php
 * settings.php
-* DragDrop.js
+* custom-html.php
 * .htaccess
+(※Ver0.04a以降では、static-data/upd-manage.dat のパーミッションを変更しないとアップロードが正常に完了できない場合があります)
 
 ##設置方法
 1.settings.php を開き、各項目を設定します。  
@@ -75,18 +79,29 @@ CronJob等の定期的なアクセスを設定する必要が無いため、簡�
 * サーバ側のPHPが 5.4.0 以上
 * ブラウザがHTML5 FileAPIに対応( 最新の Chrome/Firefox/Safari や IE10以降 )
 
+##カスタムHTMLの設定
+ろだ独自のカスタムHTMLやメニューを custom-html.php に記入しておくと、スクリプトのバージョンアップを行う際に index.php を書き換える作業が不要になります。  
+custom-html.php で設定したカスタムHTMLがどの部分に挿入されるかは index.php をご確認ください。
+
 ##バージョンアップ方法
 1.**Download ZIP**からスクリプト一式をダウンロードします。  
 2.サーバ上の static-data/setting.dat を削除します。  
 3.settings.php を開き、各項目を設定します。  
-4.masterkey.php 以外のスクリプトをすべて上書きします。  
-(※画像やログファイルを削除せずにバージョンアップが可能です)  
+4.masterkey.php と custom-html.php(設定している場合) 以外のスクリプトをすべて上書きします。  
+(※画像やログファイルを削除せずにバージョンアップが可能です)
 
 ##再配布等について
 再配布・転載・フォークはご自由にしていただいて構いません。  
 バグ修正版の公開等はこのGitHubでのみ行いますので、アップローダー下部にあるGitHubへのリンクは削除されないことをおすすめします。
 
 ##更新履歴
+* **Ver0.04a** (2014/05/27)
+ - 重複アップロード時に異常が発生する問題を修正
+ - CSSを jlab-script-plus.css に統一
+ - Javascriptを jlab-script-plus.js に統一
+ - 画像をドラッグアンドドロップで取り込んだ時にメッセージを表示するように変更
+ - 画像配信URLを変更する機能を追加
+ - カスタムHTML機能を追加
 * **Ver0.03e** (2014/05/08)
  - アップロード時にJavascriptを使用するように変更(一部荒らし対策)
  - アップロード時に「アップロード中...」の表示を追加

@@ -370,121 +370,12 @@ else if( $LoginEditor == "Login" ){
 <meta name="robots" content="noindex">
 <title>メガエディター : <?php echo $JlabTitle; ?></title>
 
-<!-- StyleSheet -->
+<!-- Default CSS/Javascript -->
+<link type="text/css" rel="stylesheet" href="./static-data/jlab-script-plus.css">
+<script type="text/javascript" src="./static-data/jlab-script-plus.js"></script>
+
+<!-- CSS -->
 <style type="text/css">
-
-/* --- Main --- */
-body {
-	width:100%;
-	margin:0;
-	padding:0;
-	background:#f5f5f5;
-	color:#000;
-	font-family:Helvetica,"Meiryo UI",sans-serif;
-	font-size:14px;
-	text-align:left;
-}
-
-img { border:0px; }
-
-a { color:#444;  text-decoration:underline; }
-a:hover { text-decoration:none; }
-
-input { margin:0 }
-
-h1 {
-	margin:0;
-	padding:1em 2em;
-	color:#444;
-	font-size:24px;
-}
-
-/* --- Input --- */
-.TextBox {
-	height:24px;
-	padding:3px;
-	background:#ffffff;
-	border:2px solid #9c9c9c;
-	border-radius:0px;
-	outline:none;
-	transition:0.5s ease;
-	-webkit-transition:0.5s ease;
-	-moz-transition:0.5s ease;
-}
-
-.TextBox:hover { box-shadow:0 0 7px #9c9c9c; }
-
-.BlueButton,.RedButton {
-	width:150px;
-	height:30px;
-	outline:none;
-	border:0px;
-	border-radius:0px;
-	color:#fff;
-	text-shadow:0 0 5px #fff;
-	transition:0.5s ease;
-	-webkit-transition:0.5s ease;
-	-moz-transition:0.5s ease;
-}
-.BlueButton { background:#004ab2; }
-.BlueButton:hover { box-shadow:0 0 7px #004ab2; }
-.BlueButton:active { box-shadow:0 0 0 #004ab2; }
-
-.RedButton { background:#ff4f4f; }
-.RedButton:hover { box-shadow:0 0 7px #ff4f4f; }
-.RedButton:active { box-shadow:0 0 0 #ff4f4f; }
-
-/* --- MainSet --- */
-#MainSet {
-	position:relative;
-	padding:2em 0 2em 3em;
-	background:#fff;
-	border-top:1px solid #ccc;
-	border-bottom:1px solid #ccc;
-}
-
-#MainSetPanel {
-	margin:10px 0;
-}
-
-/* --- List --- */
-#ImageList {
-	background:#fff;
-	border-top:1px solid #ccc;
-	border-bottom:1px solid #ccc;
-}
-
-#ImageList ul {
-	margin-left:3em !important;
-}
-
-.ImagePageLink li {
-	margin-right:2.5px;
-	padding:5px;
-	border-bottom:2px solid #999;
-	list-style:none;
-	display:inline-block;
-}
-
-.ImagePageLink li:hover {
-	border-bottom:2px solid #ededed;
-}
-
-.ImagePageLink a {
-	color:#000;
-	text-decoration:none;
-}
-
-.ImageElements {
-	margin-left:3em;
-	padding:2em 0;
-	border-bottom:1px solid #ccc;
-}
-
-.ImageElements div {
-	padding-bottom:10px;
-}
-
 .InitImage {
 	width:<?php echo $MaxThumbWidth; ?>px;
 	float:left;
@@ -496,13 +387,6 @@ h1 {
 .InitImage img {
 	max-width:<?php echo $MaxThumbWidth; ?>px;
 	max-height:<?php echo $MaxThumbHeight; ?>px;
-}
-
-/* --- LinkMenu --- */
-#LinkMenu {
-	margin:2em 0 2em 3em;
-	padding:0px;
-	list-style:none;
 }
 
 #LinkMenu li {
@@ -561,12 +445,13 @@ function RestoreLog(RestoreDay){
 <div id="Contents">
 
 <!-- MainSet -->
-<div id="MainSet">
+<div id="ResultP" style="text-align:left !important;">
 <?php echo $MainSetHTML; ?>
 </div>
 
 <!-- LinkMenu -->
-<ul id="LinkMenu">
+<div id="LinkMenu">
+<ul style="padding:0; list-style:none;">
 <?php
 if( $MegaEditor ){
 	if(( $DisplayDay == "" )||( $DisplayDay == "list" )){
@@ -581,8 +466,9 @@ if( $MegaEditor ){
 	echo "<li><a href=\"./\">{$JlabTitle}へ戻る</a></li>\n";
 }
 ?>
-<br style="clear:both">
 </ul>
+<br style="clear:both">
+</div>
 
 <?php
 //この先はログイン済みの場合に表示されます
@@ -729,7 +615,7 @@ if( $MegaEditor ){
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03e(MegaEditor v1.1)</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank"><script type="text/javascript">document.write(VersionNumber);</script> / MegaEditor v1.2</a></p>
 </div>
 </footer>
 

@@ -1,5 +1,8 @@
 <?php
 
+//カスタムHTMLの読み込み
+require_once("./custom-html.php");
+
 //設定ファイルの読み込みをする
 if( file_exists("./static-data/setting.dat") ){
 	$SettingsData = file_get_contents("./static-data/setting.dat");
@@ -17,6 +20,7 @@ if( file_exists("./static-data/setting.dat") ){
 	$DisplayImageCount = $SettingData[9];
 	$SaveDay = $SettingData[10];
 	$FileBaseName = $SettingData[13];
+	$TransportURL = $SettingData[15];
 	
 	if( $FileBaseName == "" ){
 		$FileBaseName = "";
@@ -83,6 +87,11 @@ if( file_exists("./static-data/setting.dat") ){
 <meta name="robots" content="<?php echo $MetaRobots; ?>">
 <title><?php echo $JlabTitle; ?></title>
 
+<<<<<<< HEAD
+<!-- Default CSS/Javascript -->
+<link type="text/css" rel="stylesheet" href="./static-data/jlab-script-plus.css">
+<script type="text/javascript" src="./static-data/jlab-script-plus.js"></script>
+=======
 <!-- StyleSheet -->
 <style type="text/css">
 
@@ -192,48 +201,13 @@ h1 {
 	line-height:40px;
 	float:left;
 }
+>>>>>>> FETCH_HEAD
 
+<!-- CSS -->
+<style type="text/css">
 #Preview img {
 	max-width:<?php echo $MaxThumbWidth; ?>px;
 	max-height:<?php echo $MaxThumbHeight; ?>px;
-}
-
-/* --- List --- */
-#ImageList {
-	background:#fff;
-	border-top:1px solid #ccc;
-	border-bottom:1px solid #ccc;
-}
-
-#ImageList ul {
-	margin-left:3em !important;
-}
-
-.ImagePageLink li {
-	margin-right:2.5px;
-	padding:5px;
-	border-bottom:2px solid #999;
-	list-style:none;
-	display:inline-block;
-}
-
-.ImagePageLink li:hover {
-	border-bottom:2px solid #ededed;
-}
-
-.ImagePageLink a {
-	color:#000;
-	text-decoration:none;
-}
-
-.ImageElements {
-	margin-left:3em;
-	padding:2em 0;
-	border-bottom:1px solid #ccc;
-}
-
-.ImageElements div {
-	padding-bottom:10px;
 }
 
 .InitImage {
@@ -248,101 +222,14 @@ h1 {
 	max-width:<?php echo $MaxThumbWidth; ?>px;
 	max-height:<?php echo $MaxThumbHeight; ?>px;
 }
-
-/* --- URLBox --- */
-#URLBox {
-	width:100%;
-	height:225px;
-	margin-top:-45px;
-	position:fixed;
-	top:100%;
-	left:0%;
-	z-index:3;
-	transition:0.5s cubic-bezier(0.23,1,0.32,1);
-	-webkit-transition:0.5s cubic-bezier(0.23,1,0.32,1);
-	-moz-transition:0.5s cubic-bezier(0.23,1,0.32,1);
-}
-
-#URLBox a {
-	text-decoration:none;
-}
-
-#URLBoxLabel {
-	width:150px;
-	height:45px;
-	margin-left:-180px;
-	position:relative;
-	left:100%;
-	z-index:8;
-	background:#fff;
-	border:1px solid #ccc;
-	border-bottom:0px;
-	line-height:45px;
-	text-align:center;
-}
-
-#URLBoxInner {
-	width:100%;
-	height:140px;
-	padding:20px 2em;
-	position:fixed;
-	z-index:9;
-	background:#fff;
-	border-top:1px solid #ccc;
-}
-
-#LinkMenu {
-	margin:2em 0 2em 3em;
-}
-
-
 </style>
 
 <!-- Javascript -->
-<script type="text/javascript" src="./DragDrop.js"></script>
 <script type="text/javascript">
 var OpenURLBox = false;
 var UseDragDrop = <?php echo $UseDragDrop; ?>;
 
-function urlbox( ub_cmd ){
-
-	if( !OpenURLBox ){
-		ToggleURLBox();
-	}
-
-	switch( ub_cmd ){
-		case "clear":
-			document.getElementById("urlbox-textarea").value = "";
-		break;
-
-		default:
-			before_urlbox_textarea = document.getElementById("urlbox-textarea").value;
-			document.getElementById("urlbox-textarea").value = ub_cmd + "\n" + before_urlbox_textarea;
-		break;
-	}
-
-	return;
-}
-
-function ToggleURLBox(){
-
-	if( !OpenURLBox ){
-		document.getElementById("URLBox").style.marginTop = "-225px";
-		document.getElementById("URLBoxInner").style.boxShadow = "0 0 10px #000";
-		OpenURLBox = true;
-	}else{
-		document.getElementById("URLBox").style.marginTop = "-45px";
-		document.getElementById("URLBoxInner").style.boxShadow = "0 0 0 #000";
-		OpenURLBox = false;
-	}
-
-}
-
-function ImageUploading(){
-	document.getElementById("UploaderCurtain").style.display = "block";
-	document.ImageUploader.submit();
-}
-
+//ドラッグアンドドロップチェック
 window.onload = function(){
 	CheckEnableFileAPI();
 }
@@ -350,6 +237,11 @@ window.onload = function(){
 
 </head>
 <body ondragover="onFileOver(event)" ondrop="onFileDrop(event)">
+
+<!-- DragDropCurtain -->
+<div id="DragDropCurtain">
+<div style="margin:2em 3em" id="DragDropCurtainT">ドロップして画像を取り込みます</div>
+</div>
 
 <!-- Header -->
 <header>
@@ -359,46 +251,53 @@ window.onload = function(){
 <!-- Contents -->
 <div id="Contents">
 
-<!-- Uploader -->
-<div id="Uploader">
-
-<!-- Curtain -->
-<div id="UploaderCurtain">
-<div style="margin-top:30px; font-size:18px;">アップロード中です...</div>
-</div>
-
-<!-- JlabRing : 実況ろだに参加する際は下のコメントアウトを除去して下さい -->
-<!--
-<iframe src="http://livech.sakura.ne.jp/jlab/ring.html" id="JlabRing" frameborder="no" scrolling="no"></iframe>
--->
-
-<span id="UploaderMessage">画像をブラウザ上に<strong>ドラッグアンドドロップ</strong>するか、ファイルを選択してください</span>
-<form method="post" enctype="multipart/form-data" id="UploaderPanel" name="ImageUploader" action="upload.php">
-	<p id="Preview"></p>
-	<div style="font-weight:bold">ファイル</div>
-	<div style="width:400px !important;"><input type="file" name="Image" id="UploadMedia"><span id="LoadedFileName"></span></div>
-	<div style="display:none"><input type="hidden" name="ImageBase64" id="ImageBase64N"></div>
-	<br style="clear:both">
-	<div style="font-weight:bold">削除キー</div>
-	<div><input type="password" id="DeleteKeyBox" name="DeleteKey" value="<?php echo $LocalDeleteKey; ?>" class="TextBox"></div>
-	<br style="clear:both">
-	<div style="width:400px"><input type="button" class="BlueButton" value="アップロード" onclick="ImageUploading()"> <input type="button" class="RedButton" value="リセット" onclick="AllClear()"></div>
-	<br style="clear:both">
-</form>
-
-<ul style="list-style:none; padding:0; margin:0">
-	<li>JPG GIF PNG / MAX <span style="font-size:18px"><?php echo $MaxSize; ?></span>KB / <span style="font-size:20px"><?php echo $SaveDay; ?></span>日間保存 / Admin <?php echo $Admin; ?></li>
-	<li>連投可能 / URL [<?php echo "{$FullURL}{$SaveFolder}/{$FileBaseName}"; ?>+number.ext]</li>
-</ul>
+	<!-- Uploader -->
+	<div id="Uploader">
 	
-<p>
-<?php echo $JlabTitle; ?> は画像アップロード後<?php echo $SaveDay; ?>日間画像を保存し、<?php echo $SaveDay; ?>日間を過ぎると画像は自動的に削除されます。<br>
-全体の投稿数により削除される仕組みでは無いため、確実に<?php echo $SaveDay; ?>日間の間は閲覧できる状態にしたい場合や長い間保存しておきたくない画像などの公開に向いています。
-</p>
-</div>
-
-<!-- LinkMenu -->
+		<!-- Curtain -->
+		<div id="UploaderCurtain">
+		<div style="margin-top:30px; font-size:18px;">アップロード中です...</div>
+		</div>
+	
+		<!-- JlabRing : 実況ろだに参加する際は下のコメントアウトを除去して下さい -->
+		<!--
+		<iframe src="http://livech.sakura.ne.jp/jlab/ring.html" id="JlabRing" frameborder="no" scrolling="no"></iframe>
+		-->
+	
+		<span id="UploaderMessage">画像をブラウザ上に<strong>ドラッグアンドドロップ</strong>するか、ファイルを選択してください</span>
+		<form method="post" enctype="multipart/form-data" id="UploaderPanel" name="ImageUploader" action="upload.php">
+			<p id="Preview"></p>
+			<div style="font-weight:bold">ファイル</div>
+			<div style="width:400px !important;"><input type="file" name="Image" id="UploadMedia"><span id="LoadedFileName"></span></div>
+			<div style="display:none"><input type="hidden" name="ImageBase64" id="ImageBase64N"></div>
+			<br style="clear:both">
+			<div style="font-weight:bold">削除キー</div>
+			<div><input type="password" id="DeleteKeyBox" name="DeleteKey" value="<?php echo $LocalDeleteKey; ?>" class="TextBox"></div>
+			<br style="clear:both">
+			<div style="width:400px"><input type="button" class="BlueButton" value="アップロード" onclick="ImageUploading()"> <input type="button" class="RedButton" value="リセット" onclick="AllClear()"></div>
+			<br style="clear:both">
+		</form>
+	
+		<ul style="list-style:none; padding:0; margin:0">
+			<li>JPG GIF PNG / MAX <span style="font-size:18px"><?php echo $MaxSize; ?></span>KB / <span style="font-size:20px"><?php echo $SaveDay; ?></span>日間保存 / Admin <?php echo $Admin; ?></li>
+			<li>連投可能 / URL [<?php echo "{$TransportURL}{$FileBaseName}"; ?>+number.ext]</li>
+		</ul>
+		
+		<p>
+		<?php echo $JlabTitle; ?> は画像アップロード後<?php echo $SaveDay; ?>日間画像を保存し、<?php echo $SaveDay; ?>日間を過ぎると画像は自動的に削除されます。<br>
+		全体の投稿数により削除される仕組みでは無いため、確実に<?php echo $SaveDay; ?>日間の間は閲覧できる状態にしたい場合や長い間保存しておきたくない画像などの公開に向いています。
+		</p>
+		
+		<!-- CustomHTML 2 -->
+		<div style="margin:1em 0">
+		<?php echo $CustomHTML2; ?>
+		</div>
+		
+	</div>
+	
+<!-- LinkMenu(CustomHTML 1) -->
 <div id="LinkMenu">
+<?php echo $CustomHTML1; ?>
 </div>
 
 <!-- ImageList -->
@@ -470,9 +369,9 @@ if( file_exists($LogFileName) ){
 		//HTML出力
 		echo "<div class=\"ImageElements\">\n";
 		echo "<div>投稿日：{$ListElement[1]} ({$ListElement[2]}x{$ListElement[3]} : {$ListElement[4]}KB)</div>\n";
-		echo "<a href=\"{$SaveFolder}/{$ListElement[0]}\" target=\"_blank\"><div class=\"InitImage\"><img src=\"{$ThumbSaveFolder}/{$ListElement[0]}\"></div></a>\n";
-		echo "<div><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$FullURL}{$SaveFolder}/{$ListElement[0]}\" readonly></div>\n";
-		echo "<div><input type=\"button\" class=\"BlueButton\" onclick=\"urlbox('{$FullURL}{$SaveFolder}/{$ListElement[0]}')\" value=\"Add URL\"> ";
+		echo "<a href=\"{$TransportURL}{$ListElement[0]}\" target=\"_blank\"><div class=\"InitImage\"><img src=\"{$ThumbSaveFolder}/{$ListElement[0]}\"></div></a>\n";
+		echo "<div><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$TransportURL}{$ListElement[0]}\" readonly></div>\n";
+		echo "<div><input type=\"button\" class=\"BlueButton\" onclick=\"urlbox('{$TransportURL}{$ListElement[0]}')\" value=\"Add URL\"> ";
 		echo "<input type=\"button\" class=\"RedButton\" value=\"Delete\" onclick=\"location.href='./delete.php?Arc={$ListElement[0]}'\"></div>\n";
 		echo "<br style=\"clear:left;\">\n";
 		echo "</div>\n\n";
@@ -514,9 +413,14 @@ if( file_exists($LogFileName) ){
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em; ">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03e</a>｜<a href="./mega-editor.php">管理者用メガエディター</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank"><script type="text/javascript">document.write(VersionNumber);</script></a>｜<a href="./mega-editor.php">管理者用メガエディター</a></p>
 </div>
 </footer>
+
+<!-- CustomHTML 3 -->
+<div style="margin:2em 3em">
+<?php echo $CustomHTML3; ?>
+</div>
 
 <!-- URLBox -->
 <div id="URLBox">

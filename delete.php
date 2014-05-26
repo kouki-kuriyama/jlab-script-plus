@@ -26,6 +26,13 @@ if( file_exists("./static-data/setting.dat") ){
 	exit;
 }
 
+//削除が他プロセスと重複していないか確認
+//重複してロックが掛けられない場合は、ロックが掛かるまで待機
+$UpdManageFile = "./static-data/upd-manage.dat";
+$ProcessLocking = fopen($UpdManageFile,"a");
+flock($ProcessLocking,LOCK_EX);
+
+
 //削除するファイル名を読み込む
 $FileName = $_GET["Arc"];
 if( !file_exists("./{$SaveFolder}/{$FileName}") ){
@@ -111,9 +118,14 @@ switch( $DeleteMode ){
 		break;
 		
 	}else{
-	
-		$ResultMessage .= "削除キーが一致しません\n";
-		$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"button\" class=\"BlueButton\" value=\"戻る\" onclick=\"location.href='./'\"></div>\n";
+		$ResultMessage .= "<form method=\"post\" action=\"delete.php?Arc={$FileName}\" name=\"DeletePanel\">\n";
+		$ResultMessage .= "<span style=\"font-weight:bold; color:red\">削除キーが一致しません</span><br>\n";
+		$ResultMessage .= "画像を削除します<br>\n";
+		$ResultMessage .= "アップロード時に設定した削除キーを入力してください\n";
+		$ResultMessage .= "<div style=\"margin-top:1em\"><img src=\"./{$ThumbSaveFolder}/{$FileName}\"></div>\n";
+		$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"password\" id=\"DeleteKeyBox\" style=\"width:300px\" name=\"DeleteKey\" class=\"TextBox\"></div>\n";
+		$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"submit\" class=\"RedButton\" value=\"削除\"> <input type=\"button\" class=\"BlueButton\" value=\"戻る\" onclick=\"location.href='./'\"></div>\n";
+		$ResultMessage .= "</form>\n";
 		break;
 	
 	}
@@ -121,8 +133,8 @@ switch( $DeleteMode ){
 	break;
 	default:
 	$ResultMessage .= "<form method=\"post\" action=\"delete.php?Arc={$FileName}\" name=\"DeletePanel\">\n";
-	$ResultMessage .= "画像を削除します。<br>\n";
-	$ResultMessage .= "アップロード時に設定した削除キーを入力してください。\n";
+	$ResultMessage .= "画像を削除します<br>\n";
+	$ResultMessage .= "アップロード時に設定した削除キーを入力してください\n";
 	$ResultMessage .= "<div style=\"margin-top:1em\"><img src=\"./{$ThumbSaveFolder}/{$FileName}\"></div>\n";
 	$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"password\" id=\"DeleteKeyBox\" style=\"width:300px\" name=\"DeleteKey\" class=\"TextBox\"></div>\n";
 	$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"submit\" class=\"RedButton\" value=\"削除\"> <input type=\"button\" class=\"BlueButton\" value=\"戻る\" onclick=\"location.href='./'\"></div>\n";
@@ -130,6 +142,10 @@ switch( $DeleteMode ){
 	break;
 
 }
+
+//ロックを解除して開放する
+fclose($ProcessLocking);
+
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -139,80 +155,9 @@ switch( $DeleteMode ){
 <meta name="robots" content="noindex">
 <title><?php echo "画像を削除する : {$JlabTitle}"; ?></title>
 
-<!-- StyleSheet -->
-<style type="text/css">
-
-/* --- Main --- */
-body {
-	width:100%;
-	margin:0;
-	padding:0;
-	padding-bottom:225px !important;
-	background:#f5f5f5;
-	color:#000;
-	font-family:Helvetica,"Meiryo UI",sans-serif;
-	font-size:14px;
-	text-align:left;
-}
-
-img { border:0px; }
-
-a { color:#444; }
-a:hover { text-decoration:none; }
-
-input { margin:0 }
-
-h1 {
-	margin:0;
-	padding:1em 2em;
-	color:#444;
-	font-size:24px;
-}
-
-#ResultP {
-	padding:2em 0 2em 3em;
-	background:#fff;
-	border-top:1px solid #ccc;
-	border-bottom:1px solid #ccc;
-	text-align:center;
-}
-
-/* --- Input --- */
-.TextBox {
-	height:24px;
-	padding:3px;
-	background:#ffffff;
-	border:2px solid #9c9c9c;
-	border-radius:0px;
-	outline:none;
-	transition:0.5s ease;
-	-webkit-transition:0.5s ease;
-	-moz-transition:0.5s ease;
-}
-
-.TextBox:hover { box-shadow:0 0 7px #9c9c9c; }
-
-.BlueButton,.RedButton {
-	width:150px;
-	height:30px;
-	outline:none;
-	border:0px;
-	border-radius:0px;
-	color:#fff;
-	text-shadow:0 0 5px #fff;
-	transition:0.5s ease;
-	-webkit-transition:0.5s ease;
-	-moz-transition:0.5s ease;
-}
-.BlueButton { background:#004ab2; }
-.BlueButton:hover { box-shadow:0 0 7px #004ab2; }
-.BlueButton:active { box-shadow:0 0 0 #004ab2; }
-
-.RedButton { background:#ff4f4f; }
-.RedButton:hover { box-shadow:0 0 7px #ff4f4f; }
-.RedButton:active { box-shadow:0 0 0 #ff4f4f; }
-
-</style>
+<!-- Default CSS/Javascript -->
+<link type="text/css" rel="stylesheet" href="./static-data/jlab-script-plus.css">
+<script type="text/javascript" src="./static-data/jlab-script-plus.js"></script>
 
 </head>
 <body>
@@ -225,15 +170,17 @@ h1 {
 <!-- Contents -->
 <div id="Contents">
 
-<!-- Result -->
-<div id="ResultP">
-<?php echo $ResultMessage; ?>
+	<!-- Result -->
+	<div id="ResultP">
+	<?php echo $ResultMessage; ?>
+	</div>
+	
 </div>
 
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank">jlab-script-plus Ver0.03e</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank"><script type="text/javascript">document.write(VersionNumber);</script></a></p>
 </div>
 </footer>
 
