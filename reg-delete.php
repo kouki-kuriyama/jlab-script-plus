@@ -26,13 +26,12 @@ if( file_exists("./static-data/setting.dat") ){
 	exit;
 }
 
-/*//マニュアル削除が有効な場合は操作を取り消す
+//マニュアル削除が有効な場合は操作を取り消す
 if( $ManualDelete == 1 ){
 	echo "マニュアル削除が有効になっています。\n";
 	echo "定期削除を有効にする場合はマニュアル削除を無効にしてください。";
 	exit;
 }
-*/
 
 $SnDay = $SaveDay + 1;
 $DelDate = date("ymd", strtotime("- {$SnDay} days"));
