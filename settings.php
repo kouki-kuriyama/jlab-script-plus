@@ -2,7 +2,7 @@
 /*
 	
 	・jlab-script-plus settings.php
-	　Version 0.04a / Kouki Kuriyama
+	　Version 0.04b / Kouki Kuriyama
 	　http://github.com/kouki-kuriyama/jlab-script-plus
 	
 	■ jlab-script-plusスクリプト設定ファイル ■
@@ -26,10 +26,10 @@ $ThumbSaveFolder = 't';
 $LogFolder = 'd';
 
 //実況ろだの絶対パス(http://から)
-$FullURL = 'http://jikkyo.org/jlab-script-plus/';
+$FullURL = 'http://www.jikkyo.org/jlab-script-plus/';
 
 //ファイル名接頭語(不要な場合は空欄にしてください)
-$FileBaseName = 'test';
+$FileBaseName = '';
 
 //実況ろだのタイトル
 $JlabTitle = '実況ろだTEST';
@@ -38,10 +38,10 @@ $JlabTitle = '実況ろだTEST';
 $MaxSize = '1024';
 
 //サムネイル画像の最大横幅(ピクセル)
-$MaxThumbWidth = '200';
+$MaxThumbWidth = '250';
 
 //サムネイル画像の最大縦幅(ピクセル)
-$MaxThumbHeight = '200';
+$MaxThumbHeight = '250';
 
 //1ページに表示する画像の数
 $DisplayImageCount = '10';
@@ -64,6 +64,7 @@ $ManualDelete = 1;
 //削除キーの暗号化をパスする
 //サーバーの仕様により削除キーの暗号化を有効にするとエラーが発生する場合に有効にします。
 //この設定を有効にすると、削除キーはログファイルに平文で保存されます。
+//暗号化には php-mcrypt関数 を使用するため、インストールされていない場合は pear からインストールすることをおすすめします。
 //ログファイルにURL直打ちでログファイルにアクセスすると削除キーが閲覧できてしまう為、必ず付属の htaccessファイルをアップロードして .dat ファイルにアクセスできないようにしてください。
 // 0で無効、1で有効になります。
 $DelKeyByPass = 0;
@@ -108,13 +109,28 @@ if( !is_dir("./{$SaveFolder}/") ){
 	exit;
 }
 
+if( !touch("./{$SaveFolder}/src.access") ){
+	echo "［エラー］{$SaveFolder} フォルダのパーミッションをご確認ください。\n\n";
+	exit;
+}
+
 if( !is_dir("./{$ThumbSaveFolder}/") ){
 	echo "［エラー］{$ThumbSaveFolder} フォルダが存在しません。\n";
 	exit;
 }
 
+if( !touch("./{$ThumbSaveFolder}/thumb.access") ){
+	echo "［エラー］{$ThumbSaveFolder} フォルダのパーミッションをご確認ください。\n\n";
+	exit;
+}
+
 if( !is_dir("./{$LogFolder}/") ){
 	echo "［エラー］{$LogFolder} フォルダが存在しません。\n";
+	exit;
+}
+
+if( !touch("./{$LogFolder}/log.access") ){
+	echo "［エラー］{$LogFolder} フォルダのパーミッションをご確認ください。\n\n";
 	exit;
 }
 
@@ -129,6 +145,13 @@ if( empty( $RewriteURL )){
 	$TransportURL = "{$FullURL}{$SaveFolder}/";
 }else{
 	$TransportURL = $RewriteURL;
+}
+
+if( touch("./static-data/upd-manage.dat") ){
+	echo "［情報］upd-manage.dat を作成しました\n\n";
+}else{
+	echo "［エラー］upd-manage.dat が作成できません。static-dataフォルダのパーミッションをご確認ください。\n\n";
+	exit;
 }
 
 $MaxSize = $MaxSize * 1024;
@@ -149,6 +172,11 @@ $SettingData .= $DelKeyByPass."\n";
 $SettingData .= $FileBaseName."\n";
 $SettingData .= $UseDragDrop."\n";
 $SettingData .= $TransportURL;
+
+if( !touch("./static-data/upd-manage.dat") ){
+	echo "［エラー］setting.dat が作成できません。static-dataフォルダのパーミッションをご確認ください。\n\n";
+	exit;
+}
 
 file_put_contents( $SettingFile,$SettingData );
 echo "［情報］設定が完了しました。\n\n";

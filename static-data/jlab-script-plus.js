@@ -7,7 +7,7 @@ var DragDrop;
 var VersionNumber;
 
 //バージョン情報を設定
-VersionNumber = "jlab-script-plus Ver0.04a";
+VersionNumber = "jlab-script-plus Ver0.04b";
 
 //ドラッグアンドドロップ関数が使用できるか確認する
 function CheckEnableFileAPI(){

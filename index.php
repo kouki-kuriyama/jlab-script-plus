@@ -87,121 +87,9 @@ if( file_exists("./static-data/setting.dat") ){
 <meta name="robots" content="<?php echo $MetaRobots; ?>">
 <title><?php echo $JlabTitle; ?></title>
 
-<<<<<<< HEAD
 <!-- Default CSS/Javascript -->
 <link type="text/css" rel="stylesheet" href="./static-data/jlab-script-plus.css">
 <script type="text/javascript" src="./static-data/jlab-script-plus.js"></script>
-=======
-<!-- StyleSheet -->
-<style type="text/css">
-
-/* --- Main --- */
-body {
-	width:100%;
-	margin:0;
-	padding:0;
-	padding-bottom:225px !important;
-	background:#f5f5f5;
-	color:#000;
-	font-family:Helvetica,"Meiryo UI",sans-serif;
-	font-size:14px;
-	text-align:left;
-}
-
-img { border:0px; }
-
-a { color:#444; }
-a:hover { text-decoration:none; }
-
-input { margin:0 }
-
-h1 {
-	margin:0;
-	padding:1em 2em;
-	color:#444;
-	font-size:24px;
-}
-
-/* --- Input --- */
-.TextBox {
-	height:24px;
-	padding:3px;
-	background:#ffffff;
-	border:2px solid #9c9c9c;
-	border-radius:0px;
-	outline:none;
-	transition:0.5s ease;
-	-webkit-transition:0.5s ease;
-	-moz-transition:0.5s ease;
-}
-
-.TextBox:hover { box-shadow:0 0 7px #9c9c9c; }
-
-.BlueButton,.RedButton {
-	width:150px;
-	height:30px;
-	outline:none;
-	border:0px;
-	border-radius:0px;
-	color:#fff;
-	text-shadow:0 0 5px #fff;
-	transition:0.5s ease;
-	-webkit-transition:0.5s ease;
-	-moz-transition:0.5s ease;
-}
-.BlueButton { background:#004ab2; }
-.BlueButton:hover { box-shadow:0 0 7px #004ab2; }
-.BlueButton:active { box-shadow:0 0 0 #004ab2; }
-
-.RedButton { background:#ff4f4f; }
-.RedButton:hover { box-shadow:0 0 7px #ff4f4f; }
-.RedButton:active { box-shadow:0 0 0 #ff4f4f; }
-
-/* --- Uploader --- */
-#Uploader {
-	position:relative;
-	padding:2em 0 2em 3em;
-	background:#fff;
-	border-top:1px solid #ccc;
-	border-bottom:1px solid #ccc;
-}
-
-#UploaderCurtain {
-	width:100%;
-	height:100%;
-	text-align:center;
-	display:none;
-	position:absolute;
-	top:0px;
-	left:0px;
-	z-index:5;
-	background:#000;
-	color:#fff;
-	filter: alpha(opacity=70);
-	-moz-opacity:0.7;
-	opacity:0.7;
-}
-
-#JlabRing {
-	width:550px;
-	height:130px;
-	position:absolute;
-	top:0px;
-	left:100%;
-	margin-left:-550px;
-}
-
-#UploaderPanel {
-	margin:10px 0;
-}
-
-#UploaderPanel div {
-	width:120px;
-	height:40px;
-	line-height:40px;
-	float:left;
-}
->>>>>>> FETCH_HEAD
 
 <!-- CSS -->
 <style type="text/css">
@@ -273,6 +161,9 @@ window.onload = function(){
 			<br style="clear:both">
 			<div style="font-weight:bold">削除キー</div>
 			<div><input type="password" id="DeleteKeyBox" name="DeleteKey" value="<?php echo $LocalDeleteKey; ?>" class="TextBox"></div>
+			<br style="clear:both">
+			<div style="font-weight:bold">保存期間</div>
+			<div style="width:400px !important;"><?php echo date("Y年n月j日")."〜".date("Y年n月j日",strtotime("+ {$SaveDay} days")); ?></div>
 			<br style="clear:both">
 			<div style="width:400px"><input type="button" class="BlueButton" value="アップロード" onclick="ImageUploading()"> <input type="button" class="RedButton" value="リセット" onclick="AllClear()"></div>
 			<br style="clear:both">

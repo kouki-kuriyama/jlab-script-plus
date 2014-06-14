@@ -352,6 +352,89 @@ else if( $LoginEditor == "Login" ){
 		
 	}
 	
+	//保存期間が終了している画像・ログを一括削除
+	else if( $EditMode == "CleanUpExp" ){
+	
+		//期限を取得
+		$SaveDayOver = date("ymd",strtotime("- {$SaveDay} days"));
+		
+		//一覧ログを取得する
+		$ImageListALL = file_get_contents("./{$LogFolder}/ImageList-all.txt");
+		$ImageListALL = explode("\n",$ImageListALL);
+	
+		//画像一覧を取得する
+		if( $GetObFolder = opendir("./{$SaveFolder}/") ){
+		
+			//保存フォルダを走査する
+			while(( $NDFileName = readdir($GetObFolder) ) !== false) {
+				
+				//フォルダ内の画像データを調査し、配列に代入する
+				if(( $NDFileName != "." )&&( $NDFileName != ".." )){
+				
+					//拡張子と接頭語を取り外す
+					$NDFileName_oq = preg_replace("~[^0-9]~","",$NDFileName);
+					
+					//アップロード日を取得
+					$UpDay = substr($NDFileName_oq,0,6);
+					
+					//もしアップロード日が保存期間を超えていたら、削除する
+					if( $UpDay < $SaveDayOver ){
+					
+						//画像とサムネイルを削除
+						unlink("./{$SaveFolder}/{$NDFileName}");
+						unlink("./{$ThumbSaveFolder}/{$NDFileName}");
+						
+						//拡張子とファイル名を分割してログファイルを削除
+						list($RFileName,$ExtensionID) = explode(".",$NDFileName);
+						unlink("./{$LogFolder}/{$RFileName}.dat");
+						
+						//一覧から削除する
+						$ImageListALLEdited = true;
+						foreach($ImageListALL as $key => $value) {
+							if( preg_match("~{$NDFileName}~",$value) ) {
+								break;
+							}
+						}
+						unset($ImageListALL[$key]);
+					}
+				}
+			}
+			
+			//一覧ファイルを保存
+			if( $ImageListALLEdited ){
+				file_put_contents("./{$LogFolder}/ImageList-all.txt",implode("\n",$ImageListALL));
+			}
+			
+		}
+		
+		//日付別ログを取得して期限切れは削除する
+		if( $GetLogFolder = opendir("./{$LogFolder}/") ){
+		
+			//ログ保存フォルダを走査する
+			while(( $NDLogFileName = readdir($GetLogFolder) ) !== false) {
+				
+				//フォルダ内のログデータを調査し、配列に代入する
+				if(( $NDLogFileName != "." )&&( $NDLogFileName != ".." )){
+				
+					//日付別ログファイルの場合は処理をする
+					if( preg_match("~ImageList-[0-9]+\.txt~",$NDLogFileName )){
+						
+						//拡張子と接頭語を取り外す
+						$LogMadeDate = preg_replace("~[^0-9]~","",$NDLogFileName);
+						
+						//もしアップロード日が保存期間を超えていたら、削除する
+						if( $LogMadeDate < $SaveDayOver ){
+							unlink("./{$LogFolder}/{$NDLogFileName}");
+						}
+					}
+				}
+			}
+		}
+		
+		$MainSetHTML = "<span style=\"font-weight:bold; color:blue\">期限切れの画像・ログファイルを削除しました</span>\n";
+		
+	}
+	
 	//メガエディターからログアウト
 	else if( $EditMode == "Logout" ){
 		$MegaEditor = false;
@@ -428,6 +511,12 @@ function RestoreLog(RestoreDay){
 	}
 }
 
+//期限切れの画像・ログを削除する
+function CleanUpExp(){
+	if( window.confirm("期限切れの画像・ログを削除します")){
+		location.href = "./mega-editor.php?EditMode=CleanUpExp";
+	}
+}
 </script>
 <?php
 }
@@ -461,6 +550,7 @@ if( $MegaEditor ){
 		echo "<li><a href=\"mega-editor.php?EditMode=qLookList&Arc={$DisplayDay}\" target=\"_blank\">この日のログをクイックルック</a></li>\n";
 		echo "<li><a href=\"mega-editor.php\" onclick=\"RestoreLog('{$DisplayDay}'); return false;\">この日のログをリストア</a></li>\n";
 	}
+	echo "<li><a href=\"mega-editor.php\" onclick=\"CleanUpExp(); return false;\">期限切れの画像を一括削除</a></li>\n";
 	echo "<li><a href=\"?EditMode=Logout\">ログアウト</a></li>\n";
 }else{
 	echo "<li><a href=\"./\">{$JlabTitle}へ戻る</a></li>\n";
@@ -615,7 +705,7 @@ if( $MegaEditor ){
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank"><script type="text/javascript">document.write(VersionNumber);</script> / MegaEditor v1.2</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank"><script type="text/javascript">document.write(VersionNumber);</script> / MegaEditor v1.3</a></p>
 </div>
 </footer>
 
