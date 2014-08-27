@@ -157,7 +157,7 @@ window.onload = function(){
 			<p id="Preview"></p>
 			<div style="font-weight:bold">ファイル</div>
 			<div style="width:400px !important;"><input type="file" name="Image" id="UploadMedia"><span id="LoadedFileName"></span></div>
-			<div style="display:none"><input type="hidden" name="ImageBase64" id="ImageBase64N"></div>
+			<div style="display:none"><input type="hidden" name="type" value="dialog"></div>
 			<br style="clear:both">
 			<div style="font-weight:bold">削除キー</div>
 			<div><input type="password" id="DeleteKeyBox" name="DeleteKey" value="<?php echo $LocalDeleteKey; ?>" class="TextBox"></div>

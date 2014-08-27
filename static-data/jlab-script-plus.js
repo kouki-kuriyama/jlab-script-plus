@@ -1,13 +1,16 @@
 <!--
 
 //各変数の初期化
+var xmlRequest = new XMLHttpRequest();
 var EnableFileAPI;
 var PhotoReader;
 var DragDrop;
+var BinaryData;
+var DeleteKey;
 var VersionNumber;
 
 //バージョン情報を設定
-VersionNumber = "jlab-script-plus Ver0.04b";
+VersionNumber = "jlab-script-plus Ver0.05a";
 
 //ドラッグアンドドロップ関数が使用できるか確認する
 function CheckEnableFileAPI(){
@@ -79,7 +82,7 @@ function FileLoad(RawFileData){
 		}
 		
 		//INPUTに代入する
-		document.getElementById("ImageBase64N").value = BinaryBase64;
+		BinaryData = BinaryBase64;
 		
 		//ドラッグアンドドロップ有効
 		DragDrop = true;
@@ -109,12 +112,13 @@ function AllClear(){
 	if( DragDrop ){
 		document.getElementById("UploadMedia").style.display = "inline";
 		document.getElementById("LoadedFileName").innerHTML = "";
-		document.getElementById("ImageBase64N").value = "";
 		document.getElementById("Preview").innerHTML = "";
 		RawFileData = "";
+		BinaryData = "";
 		BinaryBase64 = "";
 	}
 	
+	DragDrop = false;
 	document.ImageUploader.reset();
 	return;
 	
@@ -157,7 +161,36 @@ function urlbox( ub_cmd ){
 }
 
 //画像をアップロード
+//D&Dの場合はAjaxで送信する
 function ImageUploading(){
-	document.getElementById("UploaderCurtain").style.display = "block";
-	document.ImageUploader.submit();
+
+	if( DragDrop ){
+	
+		//ファイルチェック
+		if( BinaryData == "" ){
+			alert("ファイルを選択してください");
+			return false;
+		}
+	
+		document.getElementById("UploaderCurtain").style.display = "block";
+		DeleteKey = document.getElementById("DeleteKeyBox").value;
+		xmlRequest.onreadystatechange = function(){
+			if( xmlRequest.readyState == 4 ){
+				document.cookie = "RESULT=" + xmlRequest.responseText + "";
+				location.href = "./upload.php";
+				return;
+			}
+		}
+		xmlRequest.open("POST","./upload.php",true);
+		xmlRequest.setRequestHeader("content-type","application/x-www-form-urlencoded;charset=UTF-8");
+		xmlRequest.send("type=dd&DeleteKey=" + DeleteKey + "&Image=" + BinaryData + "");
+	}else{
+	
+		if( document.getElementById("UploadMedia").value == "" ){
+			alert("ファイルを選択してください");
+			return false;
+		}else{
+			document.ImageUploader.submit();
+		}
+	}
 }

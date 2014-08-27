@@ -2,7 +2,7 @@
 /*
 	
 	・jlab-script-plus settings.php
-	　Version 0.04b / Kouki Kuriyama
+	　Version 0.05a / Kouki Kuriyama
 	　http://github.com/kouki-kuriyama/jlab-script-plus
 	
 	■ jlab-script-plusスクリプト設定ファイル ■
@@ -64,7 +64,6 @@ $ManualDelete = 1;
 //削除キーの暗号化をパスする
 //サーバーの仕様により削除キーの暗号化を有効にするとエラーが発生する場合に有効にします。
 //この設定を有効にすると、削除キーはログファイルに平文で保存されます。
-//暗号化には php-mcrypt関数 を使用するため、インストールされていない場合は pear からインストールすることをおすすめします。
 //ログファイルにURL直打ちでログファイルにアクセスすると削除キーが閲覧できてしまう為、必ず付属の htaccessファイルをアップロードして .dat ファイルにアクセスできないようにしてください。
 // 0で無効、1で有効になります。
 $DelKeyByPass = 0;
