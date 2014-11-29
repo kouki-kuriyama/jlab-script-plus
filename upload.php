@@ -35,7 +35,8 @@ if( file_exists("./static-data/setting.dat") ){
 
 }else{
 	$SettingData = false;
-	echo "<div style=\"margin:30px; color:red; font-size:24px\">設定ファイルがありません！</div>\n\n";
+	echo "［エラー］設定ファイルがありません。<br>\n";
+	echo "　　　　　スクリプトを開始するには、アップローダーの設定をする必要があります。";
 	exit;
 }
 
@@ -172,14 +173,11 @@ switch( $UploadTask ){
 		file_put_contents($ImageDatPath,$ImageData);
 		
 		//画像一覧を取得する
-		$ImageListPath = "./{$LogFolder}/ImageList-{$UploadDate}.txt";
-		$ImageListALLPath = "./{$LogFolder}/ImageList-all.txt";
+		$ImageListPath = "./{$LogFolder}/ImageList.txt";
 		
 		//画像一覧に追加する
 		$ImageList = file_get_contents($ImageListPath);
-		$ImageListALL = file_get_contents($ImageListALLPath);
 		$ImageList_array = explode("\n",$ImageList);
-		$ImageListALL_array = explode("\n",$ImageListALL);
 		if( $ImageList_array[0] == "" ){
 			$NewLine = "{$FileName}.{$ExtensionID}#{$UploadTime}#{$ImageWidth}#{$ImageHeight}#{$FileSizes}";
 			file_put_contents($ImageListPath,$NewLine);
@@ -196,7 +194,7 @@ switch( $UploadTask ){
 			$DelDate = date("ymd", strtotime("- {$SnDay} days"));
 			
 			//ログファイルを確認
-			if( file_exists("./{$LogFolder}/ImageList-{$DelDate}.txt")){
+			if( file_exists("./{$LogFolder}/ImageList.txt")){
 			
 			//すべてのフォルダをスキャン
 			$DeleteImage = scandir("./{$SaveFolder}");
@@ -217,32 +215,13 @@ switch( $UploadTask ){
 				}
 			}
 			
-			//個別ログファイルを削除
-			foreach($DeleteLog as $LKey => $LValue) {
-				if( preg_match("~^(.*){$DelDate}~",$LValue) ){
-					unlink("./{$LogFolder}/{$DeleteLog[$LKey]}");
-				}
-			}
-			
-			//ImageListログファイルを削除
-			unlink("./{$LogFolder}/ImageList-{$DelDate}.txt");
-			
 			//ImageList-allログから削除する
-			foreach($ImageListALL_array as $LAKey => $LAValue) {
+			foreach($ImageList_array as $LAKey => $LAValue) {
 				if( preg_match("~^(.*){$DelDate}~",$LAValue) ){
-					unset($ImageListALL_array[$LAKey]);
+					unset($ImageList_array[$LAKey]);
 				}
 			}
 			}
-		}
-		
-		//画像一覧(ALL)に保存する
-		if( $ImageListALL_array[0] == "" ){
-			$NewLineALL = "{$FileName}.{$ExtensionID}#{$UploadTime}#{$ImageWidth}#{$ImageHeight}#{$FileSizes}";
-			file_put_contents($ImageListALLPath,$NewLineALL);
-		}else{
-			$NewLineALL = "{$FileName}.{$ExtensionID}#{$UploadTime}#{$ImageWidth}#{$ImageHeight}#{$FileSizes}\n";
-			file_put_contents($ImageListALLPath,$NewLineALL.implode("\n",$ImageListALL_array));
 		}
 		
 		//削除キーをCookieに保存する

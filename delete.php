@@ -22,7 +22,8 @@ if( file_exists("./static-data/setting.dat") ){
 
 }else{
 	$SettingData = false;
-	echo "<div style=\"margin:30px; color:red; font-size:24px\">設定ファイルがありません！</div>\n\n";
+	echo "［エラー］設定ファイルがありません。<br>\n";
+	echo "　　　　　スクリプトを開始するには、アップローダーの設定をする必要があります。";
 	exit;
 }
 
@@ -92,7 +93,7 @@ switch( $DeleteMode ){
 		unlink("./{$LogFolder}/{$RFileName}.dat");
 	
 		//日付一覧から削除する
-		$ImageList = file_get_contents("./{$LogFolder}/ImageList-{$UploadedDate}.txt");
+		$ImageList = file_get_contents("./{$LogFolder}/ImageList.txt");
 		$ImageList = explode("\n",$ImageList);
 		foreach($ImageList as $key => $value) {
 		  if( preg_match("~{$FileName}~",$value) ) {
@@ -100,18 +101,7 @@ switch( $DeleteMode ){
 		  }
 		}
 		unset($ImageList[$key]);
-		file_put_contents("./{$LogFolder}/ImageList-{$UploadedDate}.txt",implode("\n",$ImageList));
-		
-		//一覧から削除する
-		$ImageListALL = file_get_contents("./{$LogFolder}/ImageList-all.txt");
-		$ImageListALL = explode("\n",$ImageListALL);
-		foreach($ImageListALL as $key => $value) {
-			if( preg_match("~{$FileName}~",$value) ) {
-				break;
-			}
-		}
-		unset($ImageListALL[$key]);
-		file_put_contents("./{$LogFolder}/ImageList-all.txt",implode("\n",$ImageListALL));
+		file_put_contents("./{$LogFolder}/ImageList.txt",implode("\n",$ImageList));
 		
 		$ResultMessage .= "{$FileName} は削除されました\n";
 		$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"button\" class=\"BlueButton\" value=\"完了\" onclick=\"location.href='./'\"></div>\n";

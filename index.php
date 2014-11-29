@@ -43,11 +43,13 @@ if( file_exists("./static-data/setting.dat") ){
 	$DisplayDay = $_GET["Day"];
 	$CurrentPage = $_GET["Page"];
 	
+	//ログファイルのパス
+	$LogFileName = "./{$LogFolder}/ImageList.txt";
+	
 	//今日を表示
 	if( $DisplayDay == "today" ){
 		$MetaRobots = "noindex";
 		$SetDay = date("ymd");
-		$LogFileName = "./{$LogFolder}/ImageList-{$SetDay}.txt";
 	}
 	
 	//一覧表示
@@ -58,16 +60,15 @@ if( file_exists("./static-data/setting.dat") ){
 			$MetaRobots = "noindex";
 		}
 		$DisplayDay = "list";
-		$LogFileName = "./{$LogFolder}/ImageList-all.txt";
 	}
 	
 	//指定日を表示
 	else{
 		$MetaRobots = "noindex";
 		$SetDay = date("ymd", strtotime("- {$DisplayDay} days"));
-		$LogFileName = "./{$LogFolder}/ImageList-{$SetDay}.txt";
 	}
 	
+	//トップページ以外は検索結果に表示しない
 	if( $CurrentPage == "" ){
 		$CurrentPage = 1;
 	}else{
@@ -76,7 +77,9 @@ if( file_exists("./static-data/setting.dat") ){
 
 }else{
 	$SettingData = false;
-	echo "<div style=\"margin:2em 0 2em 3em; color:red; font-size:24px\">設定ファイルがありません！</div>\n\n";
+	echo "［エラー］設定ファイルがありません。<br>\n";
+	echo "　　　　　スクリプトを開始するには、アップローダーの設定をする必要があります。";
+	exit;
 }
 ?>
 <!DOCTYPE html>
@@ -222,52 +225,61 @@ for( $PRC = 1; $PRC <= $SaveDay; $PRC++ ){
 $DayLabel .= "</ul>\n";
 $DayLabel .= "</div>\n\n";
 
-if( file_exists($LogFileName) ){
+$ListIn = file_get_contents($LogFileName);
+$ImageList = explode("\n",$ListIn);
+	
+//日付が指定されている場合は指定日のみ抽出する
+if(( $DisplayDay != "" )&&( $DisplayDay != "list" )){
+	$ImageList = preg_grep("~^{$FileBaseName}{$SetDay}~",$ImageList);
+	array_values($ImageList);
+}
+$ImageCount = count($ImageList);
+array_unshift($ImageList,"IMGLIST");
 
-	$ListIn = file_get_contents($LogFileName);
-	$ImageList = explode("\n",$ListIn);
-	$ImageCount = count($ImageList);
-	array_unshift($ImageList,"IMGLIST");
-
-	$PageLabel = "<div class=\"ImagePageLink\">\n";
-	$PageLabel .= "<ul style=\"padding:0\">\n";
-	$PageCount = ceil($ImageCount/$DisplayImageCount);
-	for( $PGC = 1; $PGC <= $PageCount; $PGC++ ){
-		if( $CurrentPage == $PGC ){
-			$PageLabel .= "<li style=\"border-bottom:2px solid #ededed\">{$PGC}</li>\n";
-		}else{
-			$PageLabel .= "<a href=\"?Day={$DisplayDay}&Page={$PGC}\"><li>{$PGC}</li></a>\n";
-		}
+$PageLabel = "<div class=\"ImagePageLink\">\n";
+$PageLabel .= "<ul style=\"padding:0\">\n";
+$PageCount = ceil($ImageCount/$DisplayImageCount);
+for( $PGC = 1; $PGC <= $PageCount; $PGC++ ){
+	if( $CurrentPage == $PGC ){
+		$PageLabel .= "<li style=\"border-bottom:2px solid #ededed\">{$PGC}</li>\n";
+	}else{
+		$PageLabel .= "<a href=\"?Day={$DisplayDay}&Page={$PGC}\"><li>{$PGC}</li></a>\n";
 	}
-	
-	$PageLabel .= "</ul>\n";
-	$PageLabel .= "</div>\n\n";
-	
-	echo $DayLabel;
+}
 
-	
-	for( $i = $DisplayImageCount*$CurrentPage-($DisplayImageCount-1); $i <= $DisplayImageCount*$CurrentPage; $i++ ){
+$PageLabel .= "</ul>\n";
+$PageLabel .= "</div>\n\n";
 
-		if( $ImageList[$i] == "" ){
-			break;
-		}
+echo $DayLabel;
 
-		$ListElement = explode("#",$ImageList[$i]);
-		if( $ListElement[0] == "" ){
-			continue;
-		}
+for( $i = $DisplayImageCount*$CurrentPage-($DisplayImageCount-1); $i <= $DisplayImageCount*$CurrentPage; $i++ ){
 
-		//HTML出力
-		echo "<div class=\"ImageElements\">\n";
-		echo "<div>投稿日：{$ListElement[1]} ({$ListElement[2]}x{$ListElement[3]} : {$ListElement[4]}KB)</div>\n";
-		echo "<a href=\"{$TransportURL}{$ListElement[0]}\" target=\"_blank\"><div class=\"InitImage\"><img src=\"{$ThumbSaveFolder}/{$ListElement[0]}\"></div></a>\n";
-		echo "<div><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$TransportURL}{$ListElement[0]}\" readonly></div>\n";
-		echo "<div><input type=\"button\" class=\"BlueButton\" onclick=\"urlbox('{$TransportURL}{$ListElement[0]}')\" value=\"Add URL\"> ";
-		echo "<input type=\"button\" class=\"RedButton\" value=\"Delete\" onclick=\"location.href='./delete.php?Arc={$ListElement[0]}'\"></div>\n";
-		echo "<br style=\"clear:left;\">\n";
-		echo "</div>\n\n";
-
+	//画像が終わった場合は終了する
+	if( $ImageList[$i] == "" ){
+		break;
 	}
+
+	$ListElement = explode("#",$ImageList[$i]);
+	if( $ListElement[0] == "" ){
+		continue;
+	}
+
+	//HTML出力
+	echo "<div class=\"ImageElements\">\n";
+	echo "<div>投稿日：{$ListElement[1]} ({$ListElement[2]}x{$ListElement[3]} : {$ListElement[4]}KB)</div>\n";
+	echo "<a href=\"{$TransportURL}{$ListElement[0]}\" target=\"_blank\"><div class=\"InitImage\"><img src=\"{$ThumbSaveFolder}/{$ListElement[0]}\"></div></a>\n";
+	echo "<div><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$TransportURL}{$ListElement[0]}\" readonly></div>\n";
+	echo "<div><input type=\"button\" class=\"BlueButton\" onclick=\"urlbox('{$TransportURL}{$ListElement[0]}')\" value=\"Add URL\"> ";
+	echo "<input type=\"button\" class=\"RedButton\" value=\"Delete\" onclick=\"location.href='./delete.php?Arc={$ListElement[0]}'\"></div>\n";
+	echo "<br style=\"clear:left;\">\n";
+	echo "</div>\n\n";
+
+}
+
+//画像が存在しない場合はメッセージのみ
+if( $ImageCount == 0 ){
+	echo "<div style=\"margin-left: 3em; padding: 2em 0;\">\n画像はアップロードされていません\n</div>\n\n";
+}else{
 	
 	$PrevLinkNum = $CurrentPage-1;
 	$NextLinkNum = $CurrentPage+1;
@@ -289,13 +301,7 @@ if( file_exists($LogFileName) ){
 	echo "</ul>\n";
 	echo "</div>\n\n";
 	echo $PageLabel;
-
-
-}else{
-
-	echo $DayLabel;
-	echo "<div style=\"margin-left: 3em; padding: 2em 0;\">\n画像はアップロードされていません\n</div>\n\n";
-
+	
 }
 ?>
 </div>

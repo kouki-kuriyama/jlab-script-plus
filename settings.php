@@ -2,7 +2,7 @@
 /*
 	
 	・jlab-script-plus settings.php
-	　Version 0.05a / Kouki Kuriyama
+	　Version 0.06 dev / Kouki Kuriyama
 	　http://github.com/kouki-kuriyama/jlab-script-plus
 	
 	■ jlab-script-plusスクリプト設定ファイル ■
@@ -26,10 +26,10 @@ $ThumbSaveFolder = 't';
 $LogFolder = 'd';
 
 //実況ろだの絶対パス(http://から)
-$FullURL = 'http://www.jikkyo.org/jlab-script-plus/';
+$FullURL = 'http://www.kurichans.jp/jlab-script-plus/';
 
 //ファイル名接頭語(不要な場合は空欄にしてください)
-$FileBaseName = '';
+$FileBaseName = 'up';
 
 //実況ろだのタイトル
 $JlabTitle = '実況ろだTEST';
@@ -38,10 +38,10 @@ $JlabTitle = '実況ろだTEST';
 $MaxSize = '1024';
 
 //サムネイル画像の最大横幅(ピクセル)
-$MaxThumbWidth = '250';
+$MaxThumbWidth = '300';
 
 //サムネイル画像の最大縦幅(ピクセル)
-$MaxThumbHeight = '250';
+$MaxThumbHeight = '300';
 
 //1ページに表示する画像の数
 $DisplayImageCount = '10';
