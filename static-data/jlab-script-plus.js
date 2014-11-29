@@ -10,7 +10,7 @@ var DeleteKey;
 var VersionNumber;
 
 //バージョン情報を設定
-VersionNumber = "jlab-script-plus Ver0.05a";
+VersionNumber = "jlab-script-plus Ver0.06 dev";
 
 //ドラッグアンドドロップ関数が使用できるか確認する
 function CheckEnableFileAPI(){
