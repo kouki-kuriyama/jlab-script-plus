@@ -177,11 +177,6 @@ window.onload = function(){
 			<li>連投可能 / URL [<?php echo "{$TransportURL}{$FileBaseName}"; ?>+number.ext]</li>
 		</ul>
 		
-		<p>
-		<?php echo $JlabTitle; ?> は画像アップロード後<?php echo $SaveDay; ?>日間画像を保存し、<?php echo $SaveDay; ?>日間を過ぎると画像は自動的に削除されます。<br>
-		全体の投稿数により削除される仕組みでは無いため、確実に<?php echo $SaveDay; ?>日間の間は閲覧できる状態にしたい場合や長い間保存しておきたくない画像などの公開に向いています。
-		</p>
-		
 		<!-- CustomHTML 2 -->
 		<div style="margin:1em 0">
 		<?php echo $CustomHTML2; ?>

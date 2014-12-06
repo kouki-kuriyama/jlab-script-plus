@@ -292,26 +292,22 @@ else if( $LoginEditor == "Login" ){
 		$ImageList = file_get_contents("./{$LogFolder}/ImageList.txt");
 		$ImageList = explode("\n",$ImageList);
 		
-		//画像フォルダをスキャン
+		//画像本体・ログ・サムネイルをすべて削除
 		$DeleteImage = scandir("./{$SaveFolder}");
-		
-		//削除する
 		foreach($DeleteImage as $ImageNameKey => $ImageNameValue) {
-		
+			
 			//「.」と「..」の場合はcontinue
-			if(( $ImageNameValue = "." )||( $ImageNameValue = ".." )){
+			if(( $ImageNameValue == "." )||( $ImageNameValue == ".." )){
 				continue;
 			}
-		
-			//拡張子と接頭語を取り外す(アップロード時間を取得)
-			$ImageName_Num = preg_replace("~[^0-9]~","",$ImageNameValue);
 			
-			//アップロード日を取得
+			//拡張子と接頭語を取り外し、アップロード時間・アップロード日を取得
+			$ImageName_Num = preg_replace("~[^0-9]~","",$ImageNameValue);
 			$UploadedDay = substr($ImageName_Num,0,6);
 			
 			//もしアップロード日が保存期間を超えていたら、削除する
 			if( $UploadedDay < $SaveDayOver ){
-			
+				
 				//画像・サムネイル・ログファイルを削除
 				unlink("./{$SaveFolder}/{$ImageNameValue}");
 				unlink("./{$ThumbSaveFolder}/{$ImageNameValue}");
@@ -319,13 +315,12 @@ else if( $LoginEditor == "Login" ){
 				
 				//画像一覧ログから削除する
 				$ImageListEdited = true;
-				foreach($ImageList as $ImageNumKey => $ImageNumValue) {
-					if( preg_match("~{$ImageNameValue}~",$ImageNumValue) ) {
+				foreach($ImageList as $ImageListNumKey => $ImageListNumValue) {
+					if( preg_match("~{$ImageNameValue}~",$ImageListNumValue) ) {
+						unset($ImageList[$ImageListNumKey]);
 						break;
 					}
 				}
-				unset($ImageList[$ImageNumKey]);
-			
 			}
 		
 		}
@@ -336,7 +331,6 @@ else if( $LoginEditor == "Login" ){
 		}
 		
 		$MainSetHTML = "<span style=\"font-weight:bold; color:blue\">期限切れの画像・ログファイルを削除しました</span>\n";
-	
 	}
 	
 	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */

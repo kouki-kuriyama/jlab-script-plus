@@ -87,6 +87,7 @@ switch( $UploadTask ){
 		$UploadDate = date("ymd");
 		$UploadTime = date("y/m/d H:i:s");
 		
+		
 		//画像のサイズを取得
 		if( $UploadType == "dd" ){
 			$UploadingFileBin = base64_decode(str_replace(' ', '+', $DDUploadFile));
@@ -138,7 +139,7 @@ switch( $UploadTask ){
 		}
 		
 		//有効期限を取得する(タイムスタンプ形式)
-		$ExpirationTime = time()+(7*24*60*60);
+		$ExpirationTime = time()+($SaveDay*24*60*60);
 		
 		//画像を保存する
 		$ImagePath = "./{$SaveFolder}/{$FileName}.{$ExtensionID}";
@@ -177,50 +178,66 @@ switch( $UploadTask ){
 		
 		//画像一覧に追加する
 		$ImageList = file_get_contents($ImageListPath);
-		$ImageList_array = explode("\n",$ImageList);
-		if( $ImageList_array[0] == "" ){
-			$NewLine = "{$FileName}.{$ExtensionID}#{$UploadTime}#{$ImageWidth}#{$ImageHeight}#{$FileSizes}";
-			file_put_contents($ImageListPath,$NewLine);
+		$ImageList = explode("\n",$ImageList);
+		$NewImageListLine = "{$FileName}.{$ExtensionID}#{$UploadTime}#{$ImageWidth}#{$ImageHeight}#{$FileSizes}";
+		if( $ImageList[0] == "" ){
+			$ImageList[0] = $NewImageListLine;
 		}else{
-			$NewLine = "{$FileName}.{$ExtensionID}#{$UploadTime}#{$ImageWidth}#{$ImageHeight}#{$FileSizes}\n";
-			file_put_contents($ImageListPath,$NewLine.implode("\n",$ImageList_array));
+			array_unshift($ImageList,$NewImageListLine);
 		}
+		file_put_contents($ImageListPath,implode("\n",$ImageList));
 		
 		//もしマニュアル削除が有効な場合は保存期間を超えた画像を削除する
 		if( $ManualDelete == 1 ){
 		
 			//日付を取得する
-			$SnDay = $SaveDay + 1;
-			$DelDate = date("ymd", strtotime("- {$SnDay} days"));
+			$SaveDayOver = date("ymd",strtotime("- {$SaveDay} days"));
+			$SaveDayOneOver = $UploadDate - 1;
 			
-			//ログファイルを確認
-			if( file_exists("./{$LogFolder}/ImageList.txt")){
-			
-			//すべてのフォルダをスキャン
-			$DeleteImage = scandir("./{$SaveFolder}");
-			$DeleteThumb = scandir("./{$ThumbSaveFolder}");
-			$DeleteLog = scandir("./{$LogFolder}");
-			
-			//画像本体を削除
-			foreach($DeleteImage as $IKey => $IValue) {
-				if( preg_match("~^(.*){$DelDate}~",$IValue) ){
-					unlink("./{$SaveFolder}/{$DeleteImage[$IKey]}");
+			//既に削除済みのフラグがある場合はスキップ
+			if( !file_exists("./{$LogFolder}/ManualDeleteManage-{$UploadDate}.dat")){
+				
+				//画像本体・ログ・サムネイルをすべて削除
+				$DeleteImage = scandir("./{$SaveFolder}");
+				foreach($DeleteImage as $ImageNameKey => $ImageNameValue) {
+
+					//「.」と「..」の場合はcontinue
+					if(( $ImageNameValue == "." )||( $ImageNameValue == ".." )){
+						continue;
+					}
+					
+					//拡張子と接頭語を取り外し、アップロード時間・アップロード日を取得
+					$ImageNameNum = preg_replace("~[^0-9]~","",$ImageNameValue);
+					$UploadedDay = substr($ImageNameNum,0,6);
+					
+					//もしアップロード日が保存期間を超えていたら、削除する
+					if( $UploadedDay < $SaveDayOver ){
+						
+						//画像・サムネイル・ログファイルを削除
+						unlink("./{$SaveFolder}/{$ImageNameValue}");
+						unlink("./{$ThumbSaveFolder}/{$ImageNameValue}");
+						unlink("./{$LogFolder}/{$FileBaseName}{$ImageNameNum}.dat");
+							
+						//画像一覧ログから削除する
+						foreach($ImageList as $ImageListNumKey => $ImageListNumValue) {
+							if( preg_match("~{$ImageNameValue}~",$ImageListNumValue) ) {
+								unset($ImageList[$ImageListNumKey]);
+								break;
+							}
+						}
+					}
+				
 				}
-			}
-			
-			//サムネイルを削除
-			foreach($DeleteThumb as $TKey => $TValue) {
-				if( preg_match("~^(.*){$DelDate}~",$TValue) ){
-					unlink("./{$ThumbSaveFolder}/{$DeleteThumb[$TKey]}");
+				
+				//画像一覧ログを再度保存する
+				file_put_contents($ImageListPath,implode("\n",$ImageList));
+				
+				//削除済みのフラグを設定する
+				if( !file_exists("./{$LogFolder}/ManualDeleteManage-{$UploadDate}.dat")){
+					file_put_contents("./{$LogFolder}/ManualDeleteManage-{$UploadDate}.dat","Manual Delete Manage File.");
+				}else{
+					rename("./{$LogFolder}/ManualDeleteManage-{$SaveDayOneOver}.dat", "./{$LogFolder}/ManualDeleteManage-{$UploadDate}.dat");
 				}
-			}
-			
-			//ImageList-allログから削除する
-			foreach($ImageList_array as $LAKey => $LAValue) {
-				if( preg_match("~^(.*){$DelDate}~",$LAValue) ){
-					unset($ImageList_array[$LAKey]);
-				}
-			}
 			}
 		}
 		
@@ -230,6 +247,7 @@ switch( $UploadTask ){
 		//ロックを解除して開放する
 		fclose($ProcessLocking);
 		
+		//レスポンスを返す
 		if( $UploadType == "dd" ){
 			echo "{$FileName}.{$ExtensionID}";
 			exit;

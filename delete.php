@@ -92,13 +92,13 @@ switch( $DeleteMode ){
 		unlink("./{$ThumbSaveFolder}/{$FileName}");
 		unlink("./{$LogFolder}/{$RFileName}.dat");
 	
-		//日付一覧から削除する
+		//画像一覧ログから削除する
 		$ImageList = file_get_contents("./{$LogFolder}/ImageList.txt");
 		$ImageList = explode("\n",$ImageList);
 		foreach($ImageList as $key => $value) {
-		  if( preg_match("~{$FileName}~",$value) ) {
-		    break;
-		  }
+			if( preg_match("~{$FileName}~",$value) ) {
+				break;
+			}
 		}
 		unset($ImageList[$key]);
 		file_put_contents("./{$LogFolder}/ImageList.txt",implode("\n",$ImageList));
