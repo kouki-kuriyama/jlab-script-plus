@@ -3,6 +3,9 @@
 //カスタムHTMLの読み込み
 require_once("./custom-html.php");
 
+//セッションCookieのスタート
+session_start();
+
 //設定ファイルの読み込みをする
 if( file_exists("./static-data/setting.dat") ){
 	$SettingsData = file_get_contents("./static-data/setting.dat");
@@ -35,10 +38,6 @@ if( file_exists("./static-data/setting.dat") ){
 	//削除キーのCookieを読み込む
 	$LocalDeleteKey = $_COOKIE["DelKey"];
 	
-	//upload.phpの更新による再リクエスト防止の為にセッションCookieを持たせる
-	session_start();
-	$_SESSION["JCK"] = "Ready";
-	
 	//日付とページを取得する
 	$DisplayDay = $_GET["Day"];
 	$CurrentPage = $_GET["Page"];
@@ -66,6 +65,12 @@ if( file_exists("./static-data/setting.dat") ){
 	else{
 		$MetaRobots = "noindex";
 		$SetDay = date("ymd", strtotime("- {$DisplayDay} days"));
+	}
+	
+	//URLリングのCookieとアップロードCookieを設定
+	setcookie("UploadTask","Ready");
+	if( $_COOKIE["URLRing"] != "" ){
+		setcookie("URLRing", "",time() - 1800);
 	}
 	
 	//トップページ以外は検索結果に表示しない
@@ -119,6 +124,7 @@ if( file_exists("./static-data/setting.dat") ){
 <script type="text/javascript">
 var OpenURLBox = false;
 var UseDragDrop = <?php echo $UseDragDrop; ?>;
+var NextUploader = false;
 
 //ドラッグアンドドロップチェック
 window.onload = function(){
@@ -163,7 +169,7 @@ window.onload = function(){
 			<div style="display:none"><input type="hidden" name="type" value="dialog"></div>
 			<br style="clear:both">
 			<div style="font-weight:bold">削除キー</div>
-			<div><input type="password" id="DeleteKeyBox" name="DeleteKey" value="<?php echo $LocalDeleteKey; ?>" class="TextBox"></div>
+			<div style="width:400px !important;"><input type="password" id="DeleteKeyBox" name="DeleteKey" value="<?php echo $LocalDeleteKey; ?>" class="TextBox"> (Max 16Byte)</div>
 			<br style="clear:both">
 			<div style="font-weight:bold">保存期間</div>
 			<div style="width:400px !important;"><?php echo date("Y年n月j日")."〜".date("Y年n月j日",strtotime("+ {$SaveDay} days")); ?></div>

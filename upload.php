@@ -1,9 +1,8 @@
 <?php
 
-//HTMLで出力する
+//HTMLで出力する・セッションCookieのスタート
 header("Content-type:text/html");
 ini_set("display_errors",0);
-
 session_start();
 
 //クラスの読み込み
@@ -22,6 +21,7 @@ if( file_exists("./static-data/setting.dat") ){
 	$LogFolder = $SettingData[4];
 	$FullURL = $SettingData[5];
 	$MaxSize = (int)$SettingData[6];
+	$DispMaxSize = (int)$SettingData[6]/1024;
 	$MaxThumbWidth = (int)$SettingData[7];
 	$SaveDay = (int)$SettingData[10];
 	$ManualDelete = (int)$SettingData[11];
@@ -32,6 +32,15 @@ if( file_exists("./static-data/setting.dat") ){
 	if( $FileBaseName == "" ){
 		$FileBaseName = "";
 	}
+	
+	if( $SettingData[14] == 1 ){
+		$UseDragDrop = "true";
+	}else{
+		$UseDragDrop = "false";
+	}
+	
+	//削除キーのCookieを読み込む
+	$LocalDeleteKey = $_COOKIE["DelKey"];
 
 }else{
 	$SettingData = false;
@@ -44,7 +53,7 @@ if( file_exists("./static-data/setting.dat") ){
 $UploadType = $_POST["type"];
 
 //リファラーとCookieチェック
-if(( !preg_match("~^{$SettingData[5]}~",$_SERVER["HTTP_REFERER"] ))||( $_SESSION["JCK"] != "Ready" )){
+if(( !preg_match("~^{$SettingData[5]}~",$_SERVER["HTTP_REFERER"] ))||( $_COOKIE["UploadTask"] != "Ready" )){
 	header("Location:./");
 	break;
 }
@@ -83,6 +92,11 @@ switch( $UploadTask ){
 		}
 		
 		//現在の時間を取得する
+		/*$FileName = $FileBaseName.date("ymdHis",strtotime("- 6 days"));
+		$UploadDate = date("ymd",strtotime("- 6 days"));
+		$UploadTime = date("y/m/d H:i:s",strtotime("- 6 days"));
+		$ManualDelete = 0;
+		*/
 		$FileName = $FileBaseName.date("ymdHis");
 		$UploadDate = date("ymd");
 		$UploadTime = date("y/m/d H:i:s");
@@ -124,7 +138,7 @@ switch( $UploadTask ){
 			}else{
 				$ResultTitle = "この形式のファイルはアップロードできません";
 				$ResultMessage = "この形式のファイルはアップロードできません";
-				$_SESSION["JCK"] = "Complete";
+				setcookie("UploadTask", "Complete");
 				break;
 			}
 		}
@@ -252,10 +266,23 @@ switch( $UploadTask ){
 			echo "{$FileName}.{$ExtensionID}";
 			exit;
 		}else{
-			$_SESSION["JCK"] = "Complete";
+		
+			//アップロードタスク完了
+			setcookie("UploadTask", "Complete");
+		
 			$ResultTitle = "アップロードが完了しました";
 			$ResultMessage = "アップロードが完了しました\n";
 			$ResultMessage .= "<div style=\"margin-top:1em\"><img src=\"{$ImageThumbPath}\"></div>\n";
+			
+			//URLリングが有効な場合はURLBoxを表示する
+			if( $_COOKIE["URLRing"] != "" ){
+				$URLRing = $_COOKIE["URLRing"];
+				$ResultMessage .= "<div style=\"margin-top:1em\"><textarea id=\"urlbox-textarea\" class=\"TextBox\" wrap=\"off\" style=\"width:350px; height:80px; resize:none;\" onclick=\"this.select(0,this.value.length)\" readonly>{$URLRing}\n{$TransportURL}{$FileName}.{$ExtensionID}</textarea></div>\n";
+			}
+			
+			//セッションCookieにリングURLを追加する
+			setcookie("URLRing", "{$URLRing}\n{$TransportURL}{$FileName}.{$ExtensionID}");
+			
 			$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$TransportURL}{$FileName}.{$ExtensionID}\" readonly></div>\n";
 		}
 	
@@ -264,13 +291,18 @@ switch( $UploadTask ){
 	case "OFF":
 	
 		//Cookieからデータを取得する
-		$ImageUID = $_COOKIE["RESULT"];
+		$ImageUID = $_COOKIE["Result"];
+		
+		//次のアップローダーは無効にしておく
+		$NextUploader = "display:none";
 	
 		if( $ImageUID != "" ){
 			
 			//Cookieの初期化
-			$_SESSION["JCK"] = "Complete";
-			setcookie("RESULT", "",time() - 1800);
+			setcookie("Result", "",time() - 1800);
+			
+			//アップロードタスク完了
+			setcookie("UploadTask", "Complete");
 			
 			//エラー表示
 			if( $ImageUID == "e201" ){
@@ -283,7 +315,18 @@ switch( $UploadTask ){
 				$ResultTitle = "アップロードが完了しました";
 				$ResultMessage .= "アップロードが完了しました\n";
 				$ResultMessage .= "<div style=\"margin-top:1em\"><img src=\"./{$ThumbSaveFolder}/{$ImageUID}\"></div>\n";
+				
+				//URLリングが有効な場合はURLBoxを表示する
+				if( $_COOKIE["URLRing"] != "" ){
+					$URLRing = $_COOKIE["URLRing"];
+					$ResultMessage .= "<div style=\"margin-top:1em\"><textarea id=\"urlbox-textarea\" class=\"TextBox\" wrap=\"off\" style=\"width:350px; height:80px; resize:none;\" onclick=\"this.select(0,this.value.length)\" readonly>{$URLRing}\n{$TransportURL}{$ImageUID}</textarea></div>\n";
+				}
+				
+				//セッションCookieにリングURLを追加する
+				setcookie("URLRing", "{$URLRing}\n{$TransportURL}{$ImageUID}");
+				
 				$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$TransportURL}{$ImageUID}\" readonly></div>\n";
+				$NextUploader = "display:block";
 			}
 		
 		
@@ -308,8 +351,46 @@ switch( $UploadTask ){
 <link type="text/css" rel="stylesheet" href="./static-data/jlab-script-plus.css">
 <script type="text/javascript" src="./static-data/jlab-script-plus.js"></script>
 
+<!-- CSS -->
+<style type="text/css">
+#Preview img {
+	max-width:<?php echo $MaxThumbWidth; ?>px;
+	max-height:<?php echo $MaxThumbHeight; ?>px;
+}
+
+.InitImage {
+	width:<?php echo $MaxThumbWidth; ?>px;
+	float:left;
+	margin:0px 10px 0px 0px;
+	padding:0px !important;
+	text-align:center;
+}
+
+.InitImage img {
+	max-width:<?php echo $MaxThumbWidth; ?>px;
+	max-height:<?php echo $MaxThumbHeight; ?>px;
+}
+</style>
+
+<!-- Javascript -->
+<script type="text/javascript">
+var OpenURLBox = false;
+var UseDragDrop = <?php echo $UseDragDrop; ?>;
+var NextUploader = true;
+
+//ドラッグアンドドロップチェック
+window.onload = function(){
+	CheckEnableFileAPI();
+}
+</script>
+
 </head>
-<body>
+<body ondragover="onFileOver(event)" ondrop="onFileDrop(event)">
+
+<!-- DragDropCurtain -->
+<div id="DragDropCurtain">
+<div style="margin:2em 3em" id="DragDropCurtainT">ドロップして画像を取り込みます</div>
+</div>
 
 <!-- Header -->
 <header>
@@ -324,7 +405,37 @@ switch( $UploadTask ){
 	<?php echo "{$ResultMessage}\n"; ?>
 	<div style="margin-top:1em"><input type="button" class="BlueButton" value="完了" onclick="location.href='./'"></div>
 	</div>
-
+	
+	<!-- NextUpload -->
+	<div id="Uploader" style="margin:2em 0; <?php echo $NextUploader; ?>">
+	
+		<!-- Curtain -->
+		<div id="UploaderCurtain">
+		<div style="margin-top:30px; font-size:18px;">アップロード中です...</div>
+		</div>
+	
+		<span id="UploaderMessage">
+		続けて画像をアップロードしますか？<br>
+		画像をブラウザ上に<strong>ドラッグアンドドロップ</strong>するか、ファイルを選択してください</span>
+		<form method="post" enctype="multipart/form-data" id="UploaderPanel" name="ImageUploader" action="upload.php">
+			<p id="Preview"></p>
+			<div style="font-weight:bold">ファイル</div>
+			<div style="width:400px !important;"><input type="file" name="Image" id="UploadMedia"><span id="LoadedFileName"></span></div>
+			<div style="display:none"><input type="hidden" name="type" value="dialog"></div>
+			<br style="clear:both">
+			<div style="font-weight:bold">削除キー</div>
+			<div style="width:400px !important;"><input type="password" id="DeleteKeyBox" name="DeleteKey" value="<?php echo $LocalDeleteKey; ?>" class="TextBox"> (Max 16Byte)</div>
+			<br style="clear:both">
+			<div style="width:400px"><input type="button" class="BlueButton" value="アップロード" onclick="ImageUploading()"> <input type="button" class="RedButton" value="リセット" onclick="AllClear()"></div>
+			<br style="clear:both">
+		</form>
+		
+		<ul style="list-style:none; padding:0; margin:0">
+			<li>JPG GIF PNG / MAX <span style="font-size:18px"><?php echo $DispMaxSize; ?></span>KB / <span style="font-size:20px"><?php echo $SaveDay; ?></span>日間保存</li>
+			<li>ここから続けてアップロードを行うと、URLBoxにアップロードした画像のURLが自動で追加されます</li>
+		</ul>
+		
+	</div>
 </div>
 
 <!-- Footer -->

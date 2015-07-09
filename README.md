@@ -1,7 +1,7 @@
-jlab-script-plus Ver0.06 dev2
+jlab-script-plus Ver0.06 dev3
 ================
   
-**2014年12月7日 jlab-script-plus Ver0.06 dev2 を公開しました**  
+**2015年7月9日 jlab-script-plus Ver0.06 dev3 を公開しました**  
   
 **このバージョンはデベロッパー版の開発版です。**
   

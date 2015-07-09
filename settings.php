@@ -2,7 +2,7 @@
 /*
 	
 	・jlab-script-plus settings.php
-	　Version 0.06 dev / Kouki Kuriyama
+	　Version 0.06 dev3 / Kouki Kuriyama
 	　http://github.com/kouki-kuriyama/jlab-script-plus
 	
 	■ jlab-script-plusスクリプト設定ファイル ■
@@ -26,7 +26,7 @@ $ThumbSaveFolder = 't';
 $LogFolder = 'd';
 
 //実況ろだの絶対パス(http://から)
-$FullURL = 'http://www.kurichans.jp/jlab-script-plus/';
+$FullURL = 'http://www.jikkyo.org/jlab-script-plus/';
 
 //ファイル名接頭語(不要な場合は空欄にしてください)
 $FileBaseName = 'up';
@@ -38,10 +38,10 @@ $JlabTitle = '実況ろだTEST';
 $MaxSize = '1024';
 
 //サムネイル画像の最大横幅(ピクセル)
-$MaxThumbWidth = '300';
+$MaxThumbWidth = '200';
 
 //サムネイル画像の最大縦幅(ピクセル)
-$MaxThumbHeight = '300';
+$MaxThumbHeight = '200';
 
 //1ページに表示する画像の数
 $DisplayImageCount = '10';
@@ -133,7 +133,7 @@ if( !touch("./{$LogFolder}/log.access") ){
 	exit;
 }
 
-if(( version_compare(PHP_VERSION,'5.4.0') < 0 )||( $UseDragDrop == 1 )){
+if(( version_compare(PHP_VERSION,'5.4.0') < 0 )&&( $UseDragDrop == 1 )){
 	echo "［情報］PHPバージョンが 5.4.0 以上です。ドラッグアンドドロップによるアップロードは有効です。\n\n";
 }else{
 	$UseDragDrop = 0;

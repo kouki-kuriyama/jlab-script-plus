@@ -354,9 +354,10 @@ else if( $LoginEditor == "Login" ){
 					list($ReFileName,$Trash) = explode(".",$NDFileNameThumb);
 					
 					$RemakeThumb = new Image("./{$SaveFolder}/{$NDFileNameThumb}");
-					$RemakeThumb -> name("../{$ThumbSaveFolder}/{$NDFileNameThumb}");
+					$RemakeThumb -> name("../{$ThumbSaveFolder}/{$ReFileName}");
 					$RemakeThumb -> width($MaxThumbWidth);
 					$RemakeThumb -> save();
+					
 				}
 			}
 		
@@ -637,7 +638,7 @@ if( $MegaEditor ){
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank"><script type="text/javascript">document.write(VersionNumber);</script> / MegaEditor v1.5 dev</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank"><script type="text/javascript">document.write(VersionNumber);</script> / MegaEditor v1.6 dev</a></p>
 </div>
 </footer>
 
