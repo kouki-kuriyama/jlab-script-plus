@@ -134,10 +134,10 @@ if( !touch("./{$LogFolder}/log.access") ){
 }
 
 if(( version_compare(PHP_VERSION,'5.4.0') < 0 )&&( $UseDragDrop == 1 )){
-	echo "［情報］PHPバージョンが 5.4.0 以上です。ドラッグアンドドロップによるアップロードは有効です。\n\n";
-}else{
 	$UseDragDrop = 0;
-	echo "［注意］PHPバージョンが 5.4.0 以下の為、ドラッグアンドドロップによるアップロードは無効です。\n\n";
+	echo "［注意］PHPバージョンが 5.4.0 以下の為、ドラッグアンドドロップによるアップロードは無効です。\n\n";	
+}else{
+	echo "［情報］PHPバージョンが 5.4.0 以上です。ドラッグアンドドロップによるアップロードは有効です。\n\n";
 }
 
 if( empty( $RewriteURL )){
