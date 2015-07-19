@@ -1,7 +1,7 @@
-jlab-script-plus Ver0.06 dev3
+jlab-script-plus Ver0.06 dev4
 ================
   
-**2015年7月9日 jlab-script-plus Ver0.06 dev3 を公開しました**  
+**2015年7月19日 jlab-script-plus Ver0.06 dev4 を公開しました**  
   
 **このバージョンはデベロッパー版の開発版です。**
   
@@ -9,10 +9,16 @@ jlab-script-plus は保存期間を設定できるアップローダースクリ
 全体の投稿数により削除される仕組みでは無いため、確実に設定した間は閲覧できる状態にしたい場合や長い間保存しておきたくない画像などの公開に向いています。  
 このスクリプトは **JLAB - 実況ろだ 明るい分散計画** 向けに作成されたスクリプトですが、それ以外の場所でもアップローダーとして設置していただけます。
 
+##このバージョン以降ついて
+jlab-script-plus Ver0.06 dev4 よりパスワードハッシュアルゴリズムの変更やフォルダ名変更など、大幅な変更を行っております。  
+Ver0.06 dev3以前のバージョンからアップデートを行う際は s フォルダ(画像保存フォルダ)、t フォルダ(サムネイル保存フォルダ)、dフォルダ(ログ保存フォルダ)以外のファイル・フォルダをすべて削除してから、新しいバージョンのjlab-script-plusを設定してください。  
+また、Ver0.06 dev3以前にアップロードされた画像は、アルゴリズム変更に伴いこのバージョンではパスワードを入力しての削除が行えません。ご注意ください。  
+詳しい変更内容は、同封の [develop-history.md](https://github.com/kouki-kuriyama/jlab-script-plus/blob/develop/develop-history.md) をご確認ください。
+
 ##必要環境
-* PHP 5.4以上推奨
+* PHP 5.3以上推奨
+ - 全ての機能を利用するには PHP 5.4 以上推奨です
 * GDライブラリ
-* php-mcrypt(設定によっては不要)
 
 ##ダウンロード
 右下の **Download ZIP** からスクリプト一式をダウンロードします。
@@ -25,41 +31,24 @@ settings.phpで簡易的なパーミッションの確認を行います。
 * /s [707]
 * /t [707]
 * /d [707]
-* /static-data [707]
- - Encryption.php
+* /static [707]
  - Thumb.php
  - jlab-script-plus.css
  - jlab-script-plus.js
 * index.php
 * upload.php
 * delete.php
-* masterkey.php
 * mega-editor.php
-* reg-delete.php
+* functions.php
 * settings.php
 * custom-html.php
 * .htaccess
 
 ##設置方法
 1.settings.php を開き、各項目を設定します。  
-2.masterkey.php を開き、settings.phpで設定したマスターキーを設定します。  
-3.すべてのファイル・フォルダをアップロードします。  
-4.ブラウザから settings.php にアクセスし、static-dataフォルダに setting.dat が作成されたことを確認します。  
-5.トップページにアクセスし、画像が正しくアップロードできるか確認します。  
-6.CronJobで reg-delete.php に１日１回アクセスするように設定します。(マニュアル削除の場合は不要)  
-(※バージョンアップの場合は下の [バージョンアップ方法](https://github.com/kouki-kuriyama/jlab-script-plus#%E3%83%90%E3%83%BC%E3%82%B8%E3%83%A7%E3%83%B3%E3%82%A2%E3%83%83%E3%83%97%E6%96%B9%E6%B3%95) をご覧ください。)  
-(※Ver0.05以前からのバージョンアップの場合は [バージョンアップ方法(Ver0.05からVer0.06へバージョンアップ)](https://github.com/kouki-kuriyama/jlab-script-plus#%e3%83%90%e3%83%bc%e3%82%b8%e3%83%a7%e3%83%b3%e3%82%a2%e3%83%83%e3%83%97%e6%96%b9%e6%b3%95%28Ver0%2e05%e3%81%8b%e3%82%89Ver0%2e06%e3%81%b8%e3%83%90%e3%83%bc%e3%82%b8%e3%83%a7%e3%83%b3%e3%82%a2%e3%83%83%e3%83%97%29) をご覧ください。)  
-
-##CronJobの設定
-CronJobの時間は午前0時5分頃がおすすめです。  
-CronJobの設定できないサーバの場合は、外部から reg-delete.php のアクセスでも動作させることができますので、定期的にブラウザからアクセスするか、GAE等CronJobの設定ができるサーバから reg-delete.php にアクセスすることで同様の動作をさせることができます。
-また、CronJob等の定期的なアクセスの設定ができない場合は下記の **マニュアル削除機能** をご覧ください。
-
-##マニュアル削除機能
-マニュアル削除機能は Ver0.02a から追加された機能です。  
-日付が変わって最初の一枚目がアップロードされるのをトリガーとし、保存期間を超えた画像・サムネイル・ログファイルを削除する機能です。
-CronJob等の定期的なアクセスを設定する必要が無いため、簡単に保存期間制限を設けることができます。  
-マニュアル削除機能はデフォルトで有効になっています。reg-delete.php による削除をする場合には settings.php でマニュアル削除機能を無効にします。
+2.すべてのファイル・フォルダをアップロードします。  
+3.ブラウザから settings.php にアクセスし、staticフォルダに setting.dat と process.dat が作成されたことを確認します。  
+4.トップページにアクセスし、画像が正しくアップロードできるか確認します。  
 
 ##メガエディター
 メガエディターは Ver0.03b から同梱されているファイルです。  
@@ -86,28 +75,13 @@ CronJob等の定期的なアクセスを設定する必要が無いため、簡�
 ろだ独自のカスタムHTMLやメニューを custom-html.php に記入しておくと、スクリプトのバージョンアップを行う際に index.php を書き換える作業が不要になります。  
 custom-html.php で設定したカスタムHTMLがどの部分に挿入されるかは index.php をご確認ください。
 
-##バージョンアップ方法(Ver0.05からVer0.06へバージョンアップ)
-1.**Download ZIP**からスクリプト一式をダウンロードします。  
-2.サーバ上の static-data/setting.dat を削除します。  
-3.settings.php を開き、各項目を設定します。  
-4.masterkey.php と custom-html.php(設定している場合) 以外のスクリプトをすべて上書きします。  
-5.ログフォルダにあるtxtファイル(ImageList-[日付].txtとImageList-all.txt)を削除します。  
-6.メガエディターにログインして、ログをリストアします。ログをリストアするとログフォルダに ImageList.txt という新しいログファイルが生成されます。
-
-##バージョンアップ方法
-1.**Download ZIP**からスクリプト一式をダウンロードします。  
-2.サーバ上の static-data/setting.dat を削除します。  
-3.settings.php を開き、各項目を設定します。  
-4.masterkey.php と custom-html.php(設定している場合) 以外のスクリプトをすべて上書きします。  
-(※画像やログファイルを削除せずにバージョンアップが可能です)
-
 ##再配布等について
 再配布・転載・フォークはご自由にしていただいて構いません。  
 バグ修正版の公開等はこのGitHubでのみ行いますので、アップローダー下部にあるGitHubへのリンクは削除されないことをおすすめします。
 
 ##更新履歴
   
-**developブランチの更新履歴は develop-history.md をご覧ください。**
+**developブランチの更新履歴は [develop-history.md](https://github.com/kouki-kuriyama/jlab-script-plus/blob/develop/develop-history.md) をご覧ください。**
   
 * **Ver0.05a** (2014/08/27)
  - 64ビットOSの一部環境でメモリーリークが発生する不具合を修正

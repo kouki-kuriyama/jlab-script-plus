@@ -1,90 +1,72 @@
 <?php
 
-//カスタムHTMLの読み込み
+/*
+	
+	jlab-script-plus index.php
+	Version 0.06 dev4 / Kouki Kuriyama
+	https://github.com/kouki-kuriyama/jlab-script-plus
+	
+*/
+
+//設定ファイル・カスタムHTMLを読み込む
+require_once("./settings.php");
 require_once("./custom-html.php");
 
 //セッションCookieのスタート
 session_start();
+	
+//削除キーのCookieを読み込む
+$LocalDeleteKey = $_COOKIE["DeleteKey"];
 
-//設定ファイルの読み込みをする
-if( file_exists("./static-data/setting.dat") ){
-	$SettingsData = file_get_contents("./static-data/setting.dat");
-	$SettingData = explode("\n",$SettingsData);
-	
-	$JlabTitle = $SettingData[0];
-	$Admin = $SettingData[1];
-	$SaveFolder = $SettingData[2];
-	$ThumbSaveFolder = $SettingData[3];
-	$LogFolder = $SettingData[4];
-	$FullURL = $SettingData[5];
-	$MaxSize = (int)$SettingData[6] / 1024;
-	$MaxThumbWidth = $SettingData[7];
-	$MaxThumbHeight = $SettingData[8];
-	$DisplayImageCount = $SettingData[9];
-	$SaveDay = $SettingData[10];
-	$FileBaseName = $SettingData[13];
-	$TransportURL = $SettingData[15];
-	
-	if( $FileBaseName == "" ){
-		$FileBaseName = "";
-	}
-	
-	if( $SettingData[14] == 1 ){
-		$UseDragDrop = "true";
-	}else{
-		$UseDragDrop = "false";
-	}
-	
-	//削除キーのCookieを読み込む
-	$LocalDeleteKey = $_COOKIE["DelKey"];
-	
-	//日付とページを取得する
-	$DisplayDay = $_GET["Day"];
-	$CurrentPage = $_GET["Page"];
-	
-	//ログファイルのパス
-	$LogFileName = "./{$LogFolder}/ImageList.txt";
-	
-	//今日を表示
-	if( $DisplayDay == "today" ){
-		$MetaRobots = "noindex";
-		$SetDay = date("ymd");
-	}
-	
-	//一覧表示
-	else if(( $DisplayDay == "" )||( $DisplayDay == "list" )){
-		if( $DisplayDay == "" ){
-			$MetaRobots = "index";
-		}else{
-			$MetaRobots = "noindex";
-		}
-		$DisplayDay = "list";
-	}
-	
-	//指定日を表示
-	else{
-		$MetaRobots = "noindex";
-		$SetDay = date("ymd", strtotime("- {$DisplayDay} days"));
-	}
-	
-	//URLリングのCookieとアップロードCookieを設定
-	setcookie("UploadTask","Ready");
-	if( $_COOKIE["URLRing"] != "" ){
-		setcookie("URLRing", "",time() - 1800);
-	}
-	
-	//トップページ以外は検索結果に表示しない
-	if( $CurrentPage == "" ){
-		$CurrentPage = 1;
-	}else{
-		$MetaRobots = "noindex";
-	}
+//日付とページを取得する
+$DisplayDay = $_GET["Day"];
+$CurrentPage = $_GET["Page"];
 
+//ログファイルのパス
+$LogFileName = "./{$LogFolder}/ImageList.txt";
+
+//ドラッグアンドドロップアップロードの確認
+if( $UseDragDrop === "true" ){
+	$UploaderReadyMessage = "画像をブラウザ上に<strong>ドラッグアンドドロップ</strong>するか、ファイルを選択してください";
 }else{
-	$SettingData = false;
-	echo "［エラー］設定ファイルがありません。<br>\n";
-	echo "　　　　　スクリプトを開始するには、アップローダーの設定をする必要があります。";
-	exit;
+	$UploaderReadyMessage = "ファイルを選択してください";
+}
+
+//今日を表示
+if( $DisplayDay == "today" ){
+	$MetaRobots = "noindex";
+	$SetDay = date("ymd");
+}
+
+//一覧表示
+else if(( $DisplayDay == "" )||( $DisplayDay == "list" )){
+	if( $DisplayDay == "" ){
+		$MetaRobots = "index";
+	}else{
+		$MetaRobots = "noindex";
+	}
+	$DisplayDay = "list";
+}
+
+//指定日を表示
+else{
+	$MetaRobots = "noindex";
+	$SetDay = date("ymd", strtotime("- {$DisplayDay} days"));
+}
+
+//アップロード待機中Cookieを設定
+//結果表示のCookieを削除
+setcookie("UploadTask","Ready");
+setcookie("Result", "",time() - 1800);
+if( $_COOKIE["URLRing"] != "" ){
+	setcookie("URLRing", "",time() - 1800);
+}
+
+//トップページ以外は検索結果に表示しない
+if( $CurrentPage == "" ){
+	$CurrentPage = 1;
+}else{
+	$MetaRobots = "noindex";
 }
 ?>
 <!DOCTYPE html>
@@ -96,8 +78,8 @@ if( file_exists("./static-data/setting.dat") ){
 <title><?php echo $JlabTitle; ?></title>
 
 <!-- Default CSS/Javascript -->
-<link type="text/css" rel="stylesheet" href="./static-data/jlab-script-plus.css">
-<script type="text/javascript" src="./static-data/jlab-script-plus.js"></script>
+<link type="text/css" rel="stylesheet" href="./static/jlab-script-plus.css">
+<script type="text/javascript" src="./static/jlab-script-plus.js"></script>
 
 <!-- CSS -->
 <style type="text/css">
@@ -161,12 +143,12 @@ window.onload = function(){
 		<iframe src="http://livech.sakura.ne.jp/jlab/ring.html" id="JlabRing" frameborder="no" scrolling="no"></iframe>
 		-->
 	
-		<span id="UploaderMessage">画像をブラウザ上に<strong>ドラッグアンドドロップ</strong>するか、ファイルを選択してください</span>
+		<span id="UploaderMessage"><?php echo $UploaderReadyMessage; ?></span>
 		<form method="post" enctype="multipart/form-data" id="UploaderPanel" name="ImageUploader" action="upload.php">
 			<p id="Preview"></p>
 			<div style="font-weight:bold">ファイル</div>
 			<div style="width:400px !important;"><input type="file" name="Image" id="UploadMedia"><span id="LoadedFileName"></span></div>
-			<div style="display:none"><input type="hidden" name="type" value="dialog"></div>
+			<div style="display:none"><input type="hidden" name="Type" value="dialog"></div>
 			<br style="clear:both">
 			<div style="font-weight:bold">削除キー</div>
 			<div style="width:400px !important;"><input type="password" id="DeleteKeyBox" name="DeleteKey" value="<?php echo $LocalDeleteKey; ?>" class="TextBox"> (Max 16Byte)</div>
@@ -179,7 +161,7 @@ window.onload = function(){
 		</form>
 	
 		<ul style="list-style:none; padding:0; margin:0">
-			<li>JPG GIF PNG / MAX <span style="font-size:18px"><?php echo $MaxSize; ?></span>KB / <span style="font-size:20px"><?php echo $SaveDay; ?></span>日間保存 / Admin <?php echo $Admin; ?></li>
+			<li>JPG GIF PNG / MAX <span style="font-size:18px"><?php echo $DisplayMaxSize; ?></span>KB / <span style="font-size:20px"><?php echo $SaveDay; ?></span>日間保存 / Admin <?php echo $Admin; ?></li>
 			<li>連投可能 / URL [<?php echo "{$TransportURL}{$FileBaseName}"; ?>+number.ext]</li>
 		</ul>
 		
@@ -270,8 +252,8 @@ for( $i = $DisplayImageCount*$CurrentPage-($DisplayImageCount-1); $i <= $Display
 	echo "<div>投稿日：{$ListElement[1]} ({$ListElement[2]}x{$ListElement[3]} : {$ListElement[4]}KB)</div>\n";
 	echo "<a href=\"{$TransportURL}{$ListElement[0]}\" target=\"_blank\"><div class=\"InitImage\"><img src=\"{$ThumbSaveFolder}/{$ListElement[0]}\"></div></a>\n";
 	echo "<div><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$TransportURL}{$ListElement[0]}\" readonly></div>\n";
-	echo "<div><input type=\"button\" class=\"BlueButton\" onclick=\"urlbox('{$TransportURL}{$ListElement[0]}')\" value=\"Add URL\"> ";
-	echo "<input type=\"button\" class=\"RedButton\" value=\"Delete\" onclick=\"location.href='./delete.php?Arc={$ListElement[0]}'\"></div>\n";
+	echo "<div><input type=\"button\" class=\"BlueButton\" onclick=\"urlbox('{$TransportURL}{$ListElement[0]}')\" value=\"URLBoxに追加\"> ";
+	echo "<input type=\"button\" class=\"RedButton\" onclick=\"location.href='./delete.php?Arc={$ListElement[0]}'\" value=\"削除\"></div>\n";
 	echo "<br style=\"clear:left;\">\n";
 	echo "</div>\n\n";
 
@@ -325,7 +307,7 @@ if( $ImageCount == 0 ){
 <div id="URLBoxLabel"><a href="javascript:void(0)" onclick="ToggleURLBox()"><div>URLBox</div></a></div>
 	<div id="URLBoxInner">
 	<textarea id="urlbox-textarea" class="TextBox" style="width:60%; height:80px; margin-bottom:10px"></textarea><br>
-	<input type="button" class="BlueButton" value="Clear" onclick="urlbox('clear')">
+	<input type="button" class="BlueButton" value="クリア" onclick="urlbox('clear')">
 	</div>
 </div>
 

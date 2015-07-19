@@ -1,149 +1,110 @@
 <?php
 
+/*
+	
+	jlab-script-plus upload.php
+	Version 0.06 dev4 / Kouki Kuriyama
+	https://github.com/kouki-kuriyama/jlab-script-plus
+	
+*/
+
 //HTMLで出力する・セッションCookieのスタート
-header("Content-type:text/html");
+header("Content-Type:text/html charset=UTF-8");
 ini_set("display_errors",0);
 session_start();
 
-//クラスの読み込み
-require_once("./static-data/Thumb.php");
-require_once("./static-data/Encryption.php");
-require_once("./masterkey.php");
+//設定ファイル・クラス・関数を読み込む
+require_once("./settings.php");
+require_once("./functions.php");
+require_once("./static/Thumb.php");
 
-//設定ファイルの読み込みをする
-if( file_exists("./static-data/setting.dat") ){
-	$SettingsData = file_get_contents("./static-data/setting.dat");
-	$SettingData = explode("\n",$SettingsData);
-	
-	$JlabTitle = $SettingData[0];
-	$SaveFolder = $SettingData[2];
-	$ThumbSaveFolder = $SettingData[3];
-	$LogFolder = $SettingData[4];
-	$FullURL = $SettingData[5];
-	$MaxSize = (int)$SettingData[6];
-	$DispMaxSize = (int)$SettingData[6]/1024;
-	$MaxThumbWidth = (int)$SettingData[7];
-	$SaveDay = (int)$SettingData[10];
-	$ManualDelete = (int)$SettingData[11];
-	$DelKeyByPass = (int)$SettingData[12];
-	$FileBaseName = $SettingData[13];
-	$TransportURL = $SettingData[15];
-	
-	if( $FileBaseName == "" ){
-		$FileBaseName = "";
-	}
-	
-	if( $SettingData[14] == 1 ){
-		$UseDragDrop = "true";
-	}else{
-		$UseDragDrop = "false";
-	}
-	
-	//削除キーのCookieを読み込む
-	$LocalDeleteKey = $_COOKIE["DelKey"];
+//変数初期化
+$ErrorCode = 0;
+$NextUploader = "display:none";
 
-}else{
-	$SettingData = false;
-	echo "［エラー］設定ファイルがありません。<br>\n";
-	echo "　　　　　スクリプトを開始するには、アップローダーの設定をする必要があります。";
+//各種Cookieを読み込む
+$LocalDeleteKey =  $_COOKIE["DeleteKey"];
+$UploadTask = $_COOKIE["UploadTask"];
+$Result = $_COOKIE["Result"];
+
+//ドラッグアンドドロップアップロードかダイアログアップロードかで処理を分ける
+//空欄の場合はドラッグアンドドロップアップロードの結果表示
+$ExecuteType = $_POST["Type"];
+
+//リファラー・不正リロードチェック
+if(( !preg_match("~^{$FullURL}~",$_SERVER["HTTP_REFERER"] ))||( $UploadTask != "Ready" )){
+	header("Location:./");
 	exit;
 }
 
-//ドラッグアンドドロップかファイルダイアログを使用しているかで処理を分ける
-$UploadType = $_POST["type"];
+//アップロードが他プロセスと重複していないか確認
+//ロックが掛けられない場合は、ロックが掛けられるまで待機
+$ProcessLock = fopen("./static/process.dat","a");
+flock($ProcessLock,LOCK_EX);
 
-//リファラーとCookieチェック
-if(( !preg_match("~^{$SettingData[5]}~",$_SERVER["HTTP_REFERER"] ))||( $_COOKIE["UploadTask"] != "Ready" )){
-	header("Location:./");
-	break;
-}
+//実行タイプがアップロードの場合はアップロードタスクを行う
+if(( $ExecuteType == "dragdrop" )||( $ExecuteType == "dialog" )){
 
-//ファイルを確認する
-$GetFile = is_uploaded_file($_FILES["Image"]["tmp_name"]);
-list($Trash,$DDUploadFile) = explode(",", $_POST["Image"]);
-if(( !$GetFile )&&( $DDUploadFile == "" )){
-	$UploadTask = "OFF";
-}else{
-	$UploadTask = "ON";
-}
-
-//ドラッグアンドドロップとファイルダイアログで処理を分ける
-switch( $UploadTask ){
-
-	case "ON":
-	
-		//アップロードが他プロセスと重複していないか確認
-		//重複してロックが掛けられない場合は、ロックが掛かるまで待機
-		$UpdManageFile = "./static-data/upd-manage.dat";
-		$ProcessLocking = fopen($UpdManageFile,"a");
-		flock($ProcessLocking,LOCK_EX);
+	//アップロードタイプの異なる部分だけタスクを分ける
+	switch( $ExecuteType ){
 		
-		//削除キーを取得する
-		$DeleteKeyPure = $_POST["DeleteKey"];
-		if( $DeleteKeyPure != "" ){
-		if( $DelKeyByPass == 1 ){
-			$DeleteKey = $DeleteKeyPure;
-		}else{
-			EncInit($MasterKey);
-			$DeleteKey = EncGo($DeleteKeyPure);
-		}
-		}else{
-			$DeleteKey = "None";
-		}
+		//ドラッグドロップアップロードの場合
+		case "dragdrop":
 		
-		//現在の時間を取得する
-		/*$FileName = $FileBaseName.date("ymdHis",strtotime("- 6 days"));
-		$UploadDate = date("ymd",strtotime("- 6 days"));
-		$UploadTime = date("y/m/d H:i:s",strtotime("- 6 days"));
-		$ManualDelete = 0;
-		*/
-		$FileName = $FileBaseName.date("ymdHis");
-		$UploadDate = date("ymd");
-		$UploadTime = date("y/m/d H:i:s");
-		
-		
-		//画像のサイズを取得
-		if( $UploadType == "dd" ){
-			$UploadingFileBin = base64_decode(str_replace(' ', '+', $DDUploadFile));
-			if( $MaxSize < strlen($UploadingFileBin) ){
-				echo "e201";
+			//画像を取得する
+			list($Trash,$RawImage) = explode(",", $_POST["Image"]);
+			if( $RawImage == "" ){
+				header("Location:./");
 				exit;
 			}
-		}else{
-			if( $MaxSize < $_FILES['Image']['size'] ){
-				$ResultTitle = "画像が大きすぎます";
-				$ResultMessage .= "画像が大きすぎます";
-				$_SESSION["JCK"] = "Complete";
-				break;
+			
+			//画像をバイナリに戻してファイルサイズと情報を取得する
+			$UploadFileBin = base64_decode(str_replace(' ', '+', $RawImage));
+			$ImageSize = strlen($UploadFileBin);
+			$ImageInfo = getimagesizefromstring($UploadFileBin);
+			
+			break;
+			
+			
+		//ダイアログアップロードの場合
+		case "dialog":
+		
+			//画像を取得する
+			$RawImage = is_uploaded_file($_FILES['Image']['tmp_name']);
+			if( !$RawImage ){
+				header("Location:./");
+				exit;
 			}
-		}
-	
-		//画像の詳細情報を取得
-		if( $UploadType == "dd" ){
-			$ImageInfo = getimagesizefromstring($UploadingFileBin);
-		}else{
+			
+			//画像のファイルサイズと情報を取得する
+			$ImageSize = $_FILES['Image']['size'];
 			$ImageInfo = getimagesize($_FILES['Image']['tmp_name']);
-		}
+			
+			break;
+			
+			
+	}
 		
-		$ImageWidth = $ImageInfo[0];
-		$ImageHeight = $ImageInfo[1];
-		$MIMETypeID = $ImageInfo[2];
-		$MIMEType = $ImageInfo["mime"];
-		
-		//画像形式を取得
-		if(( $MIMETypeID != 1 )&&( $MIMETypeID != 2 )&&( $MIMETypeID != 3 )){
-			if( $UploadType == "dd" ){
-				echo "e202";
-				exit;
-			}else{
-				$ResultTitle = "この形式のファイルはアップロードできません";
-				$ResultMessage = "この形式のファイルはアップロードできません";
-				setcookie("UploadTask", "Complete");
-				break;
-			}
-		}
-		
-		//拡張子を設定
+	//画像サイズがアップロード可能サイズより大きい場合は弾く
+	if( $MaxSize < $ImageSize ){
+		$ErrorCode = 100;
+	}
+	
+	//取得した画像の情報を専用の変数に代入
+	$ImageWidth = $ImageInfo[0];
+	$ImageHeight = $ImageInfo[1];
+	$MIMETypeID = $ImageInfo[2];
+	$MIMEType = $ImageInfo["mime"];
+	
+	//画像形式が GIF / JPEG /PNG 以外の場合は弾く
+	if(( $MIMETypeID != 1 )&&( $MIMETypeID != 2 )&&( $MIMETypeID != 3 )){
+		$ErrorCode = 200;
+	}
+	
+	//エラーが無い場合はアップロードタスクを続ける
+	if( $ErrorCode == 0 ){
+	
+		//MIMETypeIDから拡張子を設定
 		if( $MIMETypeID == 1 ){
 			$ExtensionID = "gif";
 		}else if( $MIMETypeID == 2 ){
@@ -152,15 +113,26 @@ switch( $UploadTask ){
 			$ExtensionID = "png";
 		}
 		
-		//有効期限を取得する(タイムスタンプ形式)
-		$ExpirationTime = time()+($SaveDay*24*60*60);
+		//アップロード日・時間を取得する
+		$FileName = $FileBaseName.date("ymdHis");
+		$UploadDate = date("ymd");
+		$UploadTime = date("y/m/d H:i:s");
+		$ImageFileName = "{$FileName}.{$ExtensionID}";
 		
 		//画像を保存する
-		$ImagePath = "./{$SaveFolder}/{$FileName}.{$ExtensionID}";
-		if( $UploadType == "dd" ){
-			file_put_contents($ImagePath,$UploadingFileBin);
-		}else{
+		$ImagePath = "./{$SaveFolder}/{$ImageFileName}";
+		if( $ExecuteType == "dragdrop" ){
+			file_put_contents($ImagePath,$UploadFileBin);
+		}else if( $ExecuteType == "dialog" ){
 			move_uploaded_file($_FILES['Image']['tmp_name'],$ImagePath);
+		}
+		
+		//削除キーを取得する
+		$getDeleteKey = $_POST["DeleteKey"];
+		if( $getDeleteKey != "" ){
+			$DeleteKey = base64_encode(crypt($getDeleteKey,'$6$'.sha1(uniqid(mt_rand(),true))));
+		}else{
+			$DeleteKey = "None";
 		}
 		
 		//サムネイル画像の作成
@@ -168,18 +140,16 @@ switch( $UploadTask ){
 		$CreateThumb -> name("../{$ThumbSaveFolder}/{$FileName}");
 		$CreateThumb -> width($MaxThumbWidth);
 		$CreateThumb -> save();
-		$ImageThumbPath = "./{$ThumbSaveFolder}/{$FileName}.{$ExtensionID}";
 		
 		//ファイルサイズを取得
 		$FileSizes = round( filesize($ImagePath)/1024 );
 		
 		//画像情報を保存する
 		$ImageDatPath = "./{$LogFolder}/{$FileName}.dat";
-		$ImageData = "JLAB Base ScriptPlus DataPackage Version0.1\n";
+		$ImageData = "JLAB Base ScriptPlus DataPackage Version2\n";
 		$ImageData .= "{$FileName}.{$ExtensionID}\n";
 		$ImageData .= "{$MIMEType}\n";
 		$ImageData .= "{$DeleteKey}\n";
-		$ImageData .= "{$ExpirationTime}\n";
 		$ImageData .= $_SERVER["REMOTE_ADDR"]."\n";
 		$ImageData .= $_SERVER["REMOTE_HOST"]."\n";
 		$ImageData .= $_SERVER["HTTP_USER_AGENT"];
@@ -187,13 +157,11 @@ switch( $UploadTask ){
 		//画像情報をDATファイルに保存する
 		file_put_contents($ImageDatPath,$ImageData);
 		
-		//画像一覧を取得する
+		//画像一覧を取得して新しく追加する
 		$ImageListPath = "./{$LogFolder}/ImageList.txt";
-		
-		//画像一覧に追加する
 		$ImageList = file_get_contents($ImageListPath);
 		$ImageList = explode("\n",$ImageList);
-		$NewImageListLine = "{$FileName}.{$ExtensionID}#{$UploadTime}#{$ImageWidth}#{$ImageHeight}#{$FileSizes}";
+		$NewImageListLine = "{$ImageFileName}#{$UploadTime}#{$ImageWidth}#{$ImageHeight}#{$FileSizes}";
 		if( $ImageList[0] == "" ){
 			$ImageList[0] = $NewImageListLine;
 		}else{
@@ -201,142 +169,75 @@ switch( $UploadTask ){
 		}
 		file_put_contents($ImageListPath,implode("\n",$ImageList));
 		
-		//もしマニュアル削除が有効な場合は保存期間を超えた画像を削除する
-		if( $ManualDelete == 1 ){
+		//保存期間を超えた画像がある場合は削除する
+		TimeLimitDeletion();
 		
-			//日付を取得する
-			$SaveDayOver = date("ymd",strtotime("- {$SaveDay} days"));
-			$SaveDayOneOver = $UploadDate - 1;
-			
-			//既に削除済みのフラグがある場合はスキップ
-			if( !file_exists("./{$LogFolder}/ManualDeleteManage-{$UploadDate}.dat")){
-				
-				//画像本体・ログ・サムネイルをすべて削除
-				$DeleteImage = scandir("./{$SaveFolder}");
-				foreach($DeleteImage as $ImageNameKey => $ImageNameValue) {
-
-					//「.」と「..」の場合はcontinue
-					if(( $ImageNameValue == "." )||( $ImageNameValue == ".." )){
-						continue;
-					}
-					
-					//拡張子と接頭語を取り外し、アップロード時間・アップロード日を取得
-					$ImageNameNum = preg_replace("~[^0-9]~","",$ImageNameValue);
-					$UploadedDay = substr($ImageNameNum,0,6);
-					
-					//もしアップロード日が保存期間を超えていたら、削除する
-					if( $UploadedDay < $SaveDayOver ){
-						
-						//画像・サムネイル・ログファイルを削除
-						unlink("./{$SaveFolder}/{$ImageNameValue}");
-						unlink("./{$ThumbSaveFolder}/{$ImageNameValue}");
-						unlink("./{$LogFolder}/{$FileBaseName}{$ImageNameNum}.dat");
-							
-						//画像一覧ログから削除する
-						foreach($ImageList as $ImageListNumKey => $ImageListNumValue) {
-							if( preg_match("~{$ImageNameValue}~",$ImageListNumValue) ) {
-								unset($ImageList[$ImageListNumKey]);
-								break;
-							}
-						}
-					}
-				
-				}
-				
-				//画像一覧ログを再度保存する
-				file_put_contents($ImageListPath,implode("\n",$ImageList));
-				
-				//削除済みのフラグを設定する
-				if( !file_exists("./{$LogFolder}/ManualDeleteManage-{$UploadDate}.dat")){
-					file_put_contents("./{$LogFolder}/ManualDeleteManage-{$UploadDate}.dat","Manual Delete Manage File.");
-				}else{
-					rename("./{$LogFolder}/ManualDeleteManage-{$SaveDayOneOver}.dat", "./{$LogFolder}/ManualDeleteManage-{$UploadDate}.dat");
-				}
-			}
-		}
+		//削除キーをCookieに保存し・ロックを解除して開放する
+		setcookie("DeleteKey",$getDeleteKey, time()+60*60*24*14, "/");
+		fclose($ProcessLock);
 		
-		//削除キーをCookieに保存する
-		setcookie("DelKey",$DeleteKeyPure, time()+60*60*24*14, "/");
-		
-		//ロックを解除して開放する
-		fclose($ProcessLocking);
-		
-		//レスポンスを返す
-		if( $UploadType == "dd" ){
-			echo "{$FileName}.{$ExtensionID}";
+		//ドラッグドロップアップロードの場合はアップロード結果をAjaxで返す
+		//　ダイアログアップロードの場合はそのまま処理表示タスクまで続ける
+		if( $ExecuteType == "dragdrop" ){
+			echo $ImageFileName;
 			exit;
 		}else{
-		
-			//アップロードタスク完了
-			setcookie("UploadTask", "Complete");
-		
-			$ResultTitle = "アップロードが完了しました";
-			$ResultMessage = "アップロードが完了しました\n";
-			$ResultMessage .= "<div style=\"margin-top:1em\"><img src=\"{$ImageThumbPath}\"></div>\n";
-			
-			//URLリングが有効な場合はURLBoxを表示する
-			if( $_COOKIE["URLRing"] != "" ){
-				$URLRing = $_COOKIE["URLRing"];
-				$ResultMessage .= "<div style=\"margin-top:1em\"><textarea id=\"urlbox-textarea\" class=\"TextBox\" wrap=\"off\" style=\"width:350px; height:80px; resize:none;\" onclick=\"this.select(0,this.value.length)\" readonly>{$URLRing}\n{$TransportURL}{$FileName}.{$ExtensionID}</textarea></div>\n";
-			}
-			
-			//セッションCookieにリングURLを追加する
-			setcookie("URLRing", "{$URLRing}\n{$TransportURL}{$FileName}.{$ExtensionID}");
-			
-			$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$TransportURL}{$FileName}.{$ExtensionID}\" readonly></div>\n";
+			$Result = $ImageFileName;
 		}
+	}
 	
-	break;
-	
-	case "OFF":
-	
-		//Cookieからデータを取得する
-		$ImageUID = $_COOKIE["Result"];
-		
-		//次のアップローダーは無効にしておく
-		$NextUploader = "display:none";
-	
-		if( $ImageUID != "" ){
-			
-			//Cookieの初期化
-			setcookie("Result", "",time() - 1800);
-			
-			//アップロードタスク完了
-			setcookie("UploadTask", "Complete");
-			
-			//エラー表示
-			if( $ImageUID == "e201" ){
-				$ResultTitle = "画像が大きすぎます";
-				$ResultMessage = "画像が大きすぎます";
-			}else if( $ImageUID == "e202" ){
-				$ResultTitle = "この形式のファイルはアップロードできません";
-				$ResultMessage = "この形式のファイルはアップロードできません";
-			}else{
-				$ResultTitle = "アップロードが完了しました";
-				$ResultMessage .= "アップロードが完了しました\n";
-				$ResultMessage .= "<div style=\"margin-top:1em\"><img src=\"./{$ThumbSaveFolder}/{$ImageUID}\"></div>\n";
-				
-				//URLリングが有効な場合はURLBoxを表示する
-				if( $_COOKIE["URLRing"] != "" ){
-					$URLRing = $_COOKIE["URLRing"];
-					$ResultMessage .= "<div style=\"margin-top:1em\"><textarea id=\"urlbox-textarea\" class=\"TextBox\" wrap=\"off\" style=\"width:350px; height:80px; resize:none;\" onclick=\"this.select(0,this.value.length)\" readonly>{$URLRing}\n{$TransportURL}{$ImageUID}</textarea></div>\n";
-				}
-				
-				//セッションCookieにリングURLを追加する
-				setcookie("URLRing", "{$URLRing}\n{$TransportURL}{$ImageUID}");
-				
-				$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$TransportURL}{$ImageUID}\" readonly></div>\n";
-				$NextUploader = "display:block";
-			}
-		
-		
-		}else{
-			$ResultTitle = "画像がありません";
-			$ResultMessage = "画像がありません\n";
+	//ドラッグドロップアップロードでエラーがある場合はエラー内容をAjaxで返す
+	//　ダイアログアップロードの場合はそのまま結果表示タスクまで続ける
+	else{
+		if( $ExecuteType == "dragdrop" ){
+			echo $ErrorCode;
+			exit;
 		}
+	}
+}
 
-	break;
+//結果表示タスク
+//　ドラッグアンドドロップアップロードはResultCookieから
+//　ダイアログアップロードは$ErrorCodeから処理内容を取得する
+if(( $ErrorCode == 100 )||( $Result == "100" )){
 
+	setcookie("UploadTask", "Complete");
+	$ResultTitle = "画像が大きすぎます";
+	$ResultMessage = "画像が大きすぎます";
+
+}else if(( $ErrorCode == 200 )||( $Result == "200" )){
+
+	setcookie("UploadTask", "Complete");
+	$ResultTitle = "この形式のファイルはアップロードできません";
+	$ResultMessage = "この形式のファイルはアップロードできません";
+
+}else if(( $ErrorCode == 0 )&&( $Result != "" )){
+
+	//アップロードタスク正常完了
+	setcookie("UploadTask", "Complete");
+	$ResultTitle = "アップロードが完了しました";
+	$ResultMessage = "アップロードが完了しました\n";
+	$ResultMessage .= "<div style=\"margin-top:1em\"><img src=\"./{$ThumbSaveFolder}/{$Result}\"></div>\n";
+			
+	//URLリングが有効な場合はURLBoxを表示する
+	if( $_COOKIE["URLRing"] != "" ){
+		$URLRing = $_COOKIE["URLRing"];
+		$ResultMessage .= "<div style=\"margin-top:1em\"><textarea id=\"urlbox-textarea\" class=\"TextBox\" wrap=\"off\" style=\"width:350px; height:80px; resize:none;\" onclick=\"this.select(0,this.value.length)\" readonly>{$URLRing}\n{$TransportURL}{$Result}</textarea></div>\n";
+	}
+	$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$TransportURL}{$Result}\" readonly></div>\n";
+
+	//セッションCookieにリングURLを追加する
+	setcookie("URLRing", "{$URLRing}\n{$TransportURL}{$Result}");
+
+	//次のアップローダーを表示しておく
+	$NextUploader = "display:block";
+	
+	//ドラッグアンドドロップアップロードの確認
+	if( $UseDragDrop === "true" ){
+		$UploaderReadyMessage = "画像をブラウザ上に<strong>ドラッグアンドドロップ</strong>するか、ファイルを選択してください";
+	}else{
+		$UploaderReadyMessage = "ファイルを選択してください";
+	}
 }
 ?>
 <!DOCTYPE html>
@@ -348,8 +249,8 @@ switch( $UploadTask ){
 <title><?php echo "{$ResultTitle} : {$JlabTitle}"; ?></title>
 
 <!-- Default CSS/Javascript -->
-<link type="text/css" rel="stylesheet" href="./static-data/jlab-script-plus.css">
-<script type="text/javascript" src="./static-data/jlab-script-plus.js"></script>
+<link type="text/css" rel="stylesheet" href="./static/jlab-script-plus.css">
+<script type="text/javascript" src="./static/jlab-script-plus.js"></script>
 
 <!-- CSS -->
 <style type="text/css">
@@ -416,12 +317,12 @@ window.onload = function(){
 	
 		<span id="UploaderMessage">
 		続けて画像をアップロードしますか？<br>
-		画像をブラウザ上に<strong>ドラッグアンドドロップ</strong>するか、ファイルを選択してください</span>
+		<?php echo $UploaderReadyMessage; ?></span>
 		<form method="post" enctype="multipart/form-data" id="UploaderPanel" name="ImageUploader" action="upload.php">
 			<p id="Preview"></p>
 			<div style="font-weight:bold">ファイル</div>
 			<div style="width:400px !important;"><input type="file" name="Image" id="UploadMedia"><span id="LoadedFileName"></span></div>
-			<div style="display:none"><input type="hidden" name="type" value="dialog"></div>
+			<div style="display:none"><input type="hidden" name="Type" value="dialog"></div>
 			<br style="clear:both">
 			<div style="font-weight:bold">削除キー</div>
 			<div style="width:400px !important;"><input type="password" id="DeleteKeyBox" name="DeleteKey" value="<?php echo $LocalDeleteKey; ?>" class="TextBox"> (Max 16Byte)</div>
@@ -431,7 +332,7 @@ window.onload = function(){
 		</form>
 		
 		<ul style="list-style:none; padding:0; margin:0">
-			<li>JPG GIF PNG / MAX <span style="font-size:18px"><?php echo $DispMaxSize; ?></span>KB / <span style="font-size:20px"><?php echo $SaveDay; ?></span>日間保存</li>
+			<li>JPG GIF PNG / MAX <span style="font-size:18px"><?php echo $DisplayMaxSize; ?></span>KB / <span style="font-size:20px"><?php echo $SaveDay; ?></span>日間保存</li>
 			<li>ここから続けてアップロードを行うと、URLBoxにアップロードした画像のURLが自動で追加されます</li>
 		</ul>
 		
@@ -446,4 +347,3 @@ window.onload = function(){
 </footer>
 </body>
 </html>
-	

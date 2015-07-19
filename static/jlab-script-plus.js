@@ -10,7 +10,7 @@ var DeleteKey;
 var VersionNumber;
 
 //バージョン情報を設定
-VersionNumber = "jlab-script-plus Ver0.06 dev3";
+VersionNumber = "jlab-script-plus Ver0.06 dev4";
 
 //ドラッグアンドドロップ関数が使用できるか確認する
 function CheckEnableFileAPI(){
@@ -20,7 +20,6 @@ function CheckEnableFileAPI(){
 		PhotoReader = new FileReader();
 	}else{
 		EnableFileAPI = false;
-		document.getElementById("UploaderMessage").innerHTML = "ファイルを選択してください";
 	}
 	
 	return;
@@ -186,13 +185,15 @@ function ImageUploading(){
 		}
 		xmlRequest.open("POST","./upload.php",true);
 		xmlRequest.setRequestHeader("content-type","application/x-www-form-urlencoded;charset=UTF-8");
-		xmlRequest.send("type=dd&DeleteKey=" + DeleteKey + "&Image=" + BinaryData + "");
+		xmlRequest.send("Type=dragdrop&DeleteKey=" + DeleteKey + "&Image=" + BinaryData + "");
+		
 	}else{
 	
 		if( document.getElementById("UploadMedia").value == "" ){
 			alert("ファイルを選択してください");
 			return false;
 		}else{
+			document.getElementById("UploaderCurtain").style.display = "block";
 			document.ImageUploader.submit();
 		}
 	}

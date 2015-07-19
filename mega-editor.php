@@ -1,37 +1,26 @@
 <?php
 
+/*
+	
+	jlab-script-plus mega-editor.php
+	Version 0.06 dev4 / Kouki Kuriyama
+	https://github.com/kouki-kuriyama/jlab-script-plus
+	
+*/
+
 //保険
 $MegaEditor = false;
 
-//マスターキーとThumb.phpを読み込む
-require_once("./masterkey.php");
-require_once("./static-data/Thumb.php");
+//設定とThumb.phpを読み込む
+require_once("./settings.php");
+require_once("./static/Thumb.php");
+
+//関数を読み込む
+require_once("./functions.php");
 
 //引数取得
 $DisplayDay = (string)$_GET["Day"];
 $CurrentPage = $_GET["Page"];
-
-//設定ファイルの読み込みをする
-if( file_exists("./static-data/setting.dat") ){
-	$SettingsData = file_get_contents("./static-data/setting.dat");
-	$SettingData = explode("\n",$SettingsData);
-	
-	$JlabTitle = $SettingData[0];
-	$Admin = $SettingData[1];
-	$SaveFolder = $SettingData[2];
-	$ThumbSaveFolder = $SettingData[3];
-	$LogFolder = $SettingData[4];
-	$FullURL = $SettingData[5];
-	$MaxSize = (int)$SettingData[6] / 1024;
-	$MaxThumbWidth = $SettingData[7];
-	$MaxThumbHeight = $SettingData[8];
-	$DisplayImageCount = $SettingData[9];
-	$SaveDay = $SettingData[10];
-	
-}else{
-	$SettingData = false;
-	echo "<div style=\"margin:2em 0 2em 3em; color:red; font-size:24px\">設定ファイルがありません</div>\n\n";
-}
 
 //送信されるすべてのクエリを読み込み
 $LoginEditor = $_COOKIE["MEditor"];
@@ -59,8 +48,7 @@ else if(( empty($LoginEditor) )&&( !empty($POSTMasterKey) )){
 		$MegaEditor = true;
 		setcookie("MEditor","Login", time()+21600);
 		$MainSetHTML .= "メガエディターではアップロードされた画像を管理することができます。<br>\n";
-		$MainSetHTML .= "アップローダーの設定・マスターキーの変更はファイル本体を編集する必要があります。<br>\n";
-		$MainSetHTML .= "<span style=\"font-size:12px; color:#666\">今後のバージョンアップでメガエディターからアップローダーの設定が変更できるようになる予定です。</span>\n";
+		$MainSetHTML .= "アップローダーの設定・マスターキーの変更は settings.php ファイル本体を編集する必要があります。<br>\n";
 	
 	}else{
 		$MegaEditor = false;
@@ -81,7 +69,6 @@ else if( $LoginEditor == "Login" ){
 	$MegaEditor = true;
 	$MainSetHTML .= "メガエディターではアップロードされた画像を管理することができます。<br>\n";
 	$MainSetHTML .= "アップローダーの設定・マスターキーの変更はファイル本体を編集する必要があります。<br>\n";
-	$MainSetHTML .= "<span style=\"font-size:12px; color:#666\">今後のバージョンアップでメガエディターからアップローダーの設定が変更できるようになる予定です。</span>\n";
 	
 	//すべてのクエリを読み込む
 	$ArcData = $_GET["Arc"];
@@ -284,51 +271,13 @@ else if( $LoginEditor == "Login" ){
 	
 	//保存期間が終了している画像・ログを一括削除
 	else if( $EditMode == "CleanUpExp" ){
-	
-		//期限を取得
-		$SaveDayOver = date("ymd",strtotime("- {$SaveDay} days"));
 		
 		//一覧ログを取得する
 		$ImageList = file_get_contents("./{$LogFolder}/ImageList.txt");
 		$ImageList = explode("\n",$ImageList);
 		
-		//画像本体・ログ・サムネイルをすべて削除
-		$DeleteImage = scandir("./{$SaveFolder}");
-		foreach($DeleteImage as $ImageNameKey => $ImageNameValue) {
-			
-			//「.」と「..」の場合はcontinue
-			if(( $ImageNameValue == "." )||( $ImageNameValue == ".." )){
-				continue;
-			}
-			
-			//拡張子と接頭語を取り外し、アップロード時間・アップロード日を取得
-			$ImageName_Num = preg_replace("~[^0-9]~","",$ImageNameValue);
-			$UploadedDay = substr($ImageName_Num,0,6);
-			
-			//もしアップロード日が保存期間を超えていたら、削除する
-			if( $UploadedDay < $SaveDayOver ){
-				
-				//画像・サムネイル・ログファイルを削除
-				unlink("./{$SaveFolder}/{$ImageNameValue}");
-				unlink("./{$ThumbSaveFolder}/{$ImageNameValue}");
-				unlink("./{$LogFolder}/{$FileBaseName}{$ImageName_Num}.dat");
-				
-				//画像一覧ログから削除する
-				$ImageListEdited = true;
-				foreach($ImageList as $ImageListNumKey => $ImageListNumValue) {
-					if( preg_match("~{$ImageNameValue}~",$ImageListNumValue) ) {
-						unset($ImageList[$ImageListNumKey]);
-						break;
-					}
-				}
-			}
-		
-		}
-		
-		//画像一覧ログに変更があったら新しく保存
-		if( $ImageListEdited ){
-			file_put_contents("./{$LogFolder}/ImageList.txt",implode("\n",$ImageList));
-		}
+		//(この処理は functions.php に移動しました)
+		TimeLimitDeletion(true);
 		
 		$MainSetHTML = "<span style=\"font-weight:bold; color:blue\">期限切れの画像・ログファイルを削除しました</span>\n";
 	}
@@ -393,8 +342,8 @@ else if( $LoginEditor == "Login" ){
 <title>メガエディター : <?php echo $JlabTitle; ?></title>
 
 <!-- Default CSS/Javascript -->
-<link type="text/css" rel="stylesheet" href="./static-data/jlab-script-plus.css">
-<script type="text/javascript" src="./static-data/jlab-script-plus.js"></script>
+<link type="text/css" rel="stylesheet" href="./static/jlab-script-plus.css">
+<script type="text/javascript" src="./static/jlab-script-plus.js"></script>
 
 <!-- CSS -->
 <style type="text/css">
@@ -638,7 +587,7 @@ if( $MegaEditor ){
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank"><script type="text/javascript">document.write(VersionNumber);</script> / MegaEditor v1.6 dev</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank"><script type="text/javascript">document.write(VersionNumber);</script> / MegaEditor dev4</a></p>
 </div>
 </footer>
 

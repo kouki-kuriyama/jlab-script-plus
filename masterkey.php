@@ -1,3 +1,0 @@
-<?php
-$MasterKey = 'MasterKey';
-?>
