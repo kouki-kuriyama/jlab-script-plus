@@ -168,17 +168,14 @@ if( !file_exists("./static/settings.dat") ){
 
 }
 
-<<<<<<< HEAD
 $DisplayMaxSize = $MaxSize;
 $MaxSize = $MaxSize * 1024;
-=======
 if(( version_compare(PHP_VERSION,'5.4.0') < 0 )&&( $UseDragDrop == 1 )){
 	$UseDragDrop = 0;
 	echo "［注意］PHPバージョンが 5.4.0 以下の為、ドラッグアンドドロップによるアップロードは無効です。\n\n";	
 }else{
 	echo "［情報］PHPバージョンが 5.4.0 以上です。ドラッグアンドドロップによるアップロードは有効です。\n\n";
 }
->>>>>>> origin/develop
 
 if( $RewriteURL != "" ){
 	$TransportURL = $RewriteURL;
