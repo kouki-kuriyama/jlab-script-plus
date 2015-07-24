@@ -3,7 +3,7 @@
 /*
 	
 	jlab-script-plus upload.php
-	Version 0.06 dev4 / Kouki Kuriyama
+	Version 0.06 dev4 fixed / Kouki Kuriyama
 	https://github.com/kouki-kuriyama/jlab-script-plus
 	
 */
@@ -179,6 +179,9 @@ if(( $ExecuteType == "dragdrop" )||( $ExecuteType == "dialog" )){
 		
 		//削除キーをCookieに保存し・ロックを解除して開放する
 		setcookie("DeleteKey",$getDeleteKey, time()+60*60*24*14, "/");
+		if( $LocalDeleteKey == "" ){
+			$LocalDeleteKey = $getDeleteKey;
+		}
 		fclose($ProcessLock);
 		
 		//ドラッグドロップアップロードの場合はアップロード結果をAjaxで返す
