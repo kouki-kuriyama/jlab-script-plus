@@ -143,7 +143,7 @@ if(( $ExecuteType == "dragdrop" )||( $ExecuteType == "dialog" )){
 		$ImageThumbPath = "./{$ThumbSaveFolder}/{$ImageFileName}";
 		
 		//パーミッション設定により画像が正しく表示されない場合は chmod関数 のコメントアウトを外して適切なパーミッションに設定してください
-		//chmod($ImagePath, 0644);
+		//chmod($ImagePath, 0606);
 		//chmod($ImageThumbPath, 0606); 
 		
 		//ファイルサイズを取得
