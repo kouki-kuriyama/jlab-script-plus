@@ -9,7 +9,7 @@
 */
 
 //HTMLで出力する・セッションCookieのスタート
-header("Content-Type:text/html charset=UTF-8");
+header("Content-Type:text/html; charset=UTF-8");
 ini_set("display_errors",0);
 session_start();
 
@@ -140,6 +140,11 @@ if(( $ExecuteType == "dragdrop" )||( $ExecuteType == "dialog" )){
 		$CreateThumb -> name("../{$ThumbSaveFolder}/{$FileName}");
 		$CreateThumb -> width($MaxThumbWidth);
 		$CreateThumb -> save();
+		
+		//パーミッション設定により画像が正しく表示されない場合は chmod関数 のコメントアウトを外して適切なパーミッションに設定してください
+		//chmod($ImagePath, 0644);
+		//chmod("./{$ThumbSaveFolder}/{$ImageFileName}", 0606); 
+		
 		
 		//ファイルサイズを取得
 		$FileSizes = round( filesize($ImagePath)/1024 );
