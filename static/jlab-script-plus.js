@@ -10,11 +10,7 @@ var DeleteKey;
 var VersionNumber;
 
 //バージョン情報を設定
-<<<<<<< Updated upstream:static/jlab-script-plus.js
-VersionNumber = "jlab-script-plus Ver0.06 dev4";
-=======
 VersionNumber = "jlab-script-plus Ver0.06";
->>>>>>> Stashed changes:static/jlab-script-plus.js
 
 //ドラッグアンドドロップ関数が使用できるか確認する
 function CheckEnableFileAPI(){
