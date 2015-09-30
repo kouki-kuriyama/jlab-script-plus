@@ -3,7 +3,11 @@
 /*
 	
 	jlab-script-plus upload.php
+<<<<<<< HEAD
 	Version 0.06 / Kouki Kuriyama
+=======
+	Version 0.06 dev4 fixed / Kouki Kuriyama
+>>>>>>> origin/develop
 	https://github.com/kouki-kuriyama/jlab-script-plus
 	
 */
@@ -141,6 +145,13 @@ if(( $ExecuteType == "dragdrop" )||( $ExecuteType == "dialog" )){
 		$CreateThumb -> width($MaxThumbWidth);
 		$CreateThumb -> save();
 		$ImageThumbPath = "./{$ThumbSaveFolder}/{$ImageFileName}";
+<<<<<<< HEAD
+=======
+		
+		//パーミッション設定により画像が正しく表示されない場合は chmod関数 のコメントアウトを外して適切なパーミッションに設定してください
+		//chmod($ImagePath, 0606);
+		//chmod($ImageThumbPath, 0606); 
+>>>>>>> origin/develop
 		
 		//ファイルサイズを取得
 		$FileSizes = round( filesize($ImagePath)/1024 );
