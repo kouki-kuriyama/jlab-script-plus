@@ -10,7 +10,11 @@ var DeleteKey;
 var VersionNumber;
 
 //バージョン情報を設定
+<<<<<<< Updated upstream:static/jlab-script-plus.js
 VersionNumber = "jlab-script-plus Ver0.06 dev4";
+=======
+VersionNumber = "jlab-script-plus Ver0.06";
+>>>>>>> Stashed changes:static/jlab-script-plus.js
 
 //ドラッグアンドドロップ関数が使用できるか確認する
 function CheckEnableFileAPI(){
@@ -123,7 +127,7 @@ function AllClear(){
 	
 }
 
-//URLボックスの表示・非表示
+//URLBoxの表示・非表示
 function ToggleURLBox(){
 
 	if( !OpenURLBox ){
@@ -138,6 +142,30 @@ function ToggleURLBox(){
 
 }
 
+//URLBoxのコピー
+function CopyURLBox( BoxID ){
+
+	//Internet Explorer
+	if( window.clipboardData ){
+		URLBoxTextR = document.getElementById(BoxID).value.replace(/\n/g,"\r\n");
+		window.clipboardData.setData("Text",URLBoxTextR);
+		alert("URLBoxをコピーしました");
+		return;
+	}else{
+		document.getElementById(BoxID).select();
+		try{
+			document.execCommand('copy');
+			alert("URLBoxをコピーしました");
+		}catch(err){
+			alert("コピーできません");
+		}
+		document.getElementById(BoxID).select(0);
+	}
+	
+	return;
+	
+}
+
 //URLボックスにURLを代入
 function urlbox( ub_cmd ){
 
@@ -148,11 +176,13 @@ function urlbox( ub_cmd ){
 	switch( ub_cmd ){
 		case "clear":
 			document.getElementById("urlbox-textarea").value = "";
+			localStorage.setItem("SavedURLBox","");
 		break;
 
 		default:
 			before_urlbox_textarea = document.getElementById("urlbox-textarea").value;
 			document.getElementById("urlbox-textarea").value = ub_cmd + "\n" + before_urlbox_textarea;
+			localStorage.setItem("SavedURLBox",document.getElementById("urlbox-textarea").value);
 		break;
 	}
 
