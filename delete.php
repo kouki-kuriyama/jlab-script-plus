@@ -1,37 +1,24 @@
 <?php
 
+/*
+	
+	jlab-script-plus delete.php
+	Version 0.06 / Kouki Kuriyama
+	https://github.com/kouki-kuriyama/jlab-script-plus
+	
+*/
+
 //HTMLで出力する
 ini_set("display_errors",0);
 header("Content-type:text/html");
 
-//クラスの読み込み
-require_once("./static-data/Encryption.php");
-require_once("./masterkey.php");
-
-//設定ファイルの読み込みをする
-if( file_exists("./static-data/setting.dat") ){
-	$SettingsData = file_get_contents("./static-data/setting.dat");
-	$SettingData = explode("\n",$SettingsData);
-	
-	$JlabTitle = $SettingData[0];
-	$SaveFolder = $SettingData[2];
-	$ThumbSaveFolder = $SettingData[3];
-	$LogFolder = $SettingData[4];
-	$FullURL = $SettingData[5];
-	$DelKeyByPass = (int)$SettingData[12];
-
-}else{
-	$SettingData = false;
-	echo "<div style=\"margin:30px; color:red; font-size:24px\">設定ファイルがありません！</div>\n\n";
-	exit;
-}
+//設定を読み込む
+require_once("./settings.php");
 
 //削除が他プロセスと重複していないか確認
 //重複してロックが掛けられない場合は、ロックが掛かるまで待機
-$UpdManageFile = "./static-data/upd-manage.dat";
-$ProcessLocking = fopen($UpdManageFile,"a");
-flock($ProcessLocking,LOCK_EX);
-
+$ProcessLock = fopen("./static/process.dat","a");
+flock($ProcessLock,LOCK_EX);
 
 //削除するファイル名を読み込む
 $FileName = $_GET["Arc"];
@@ -41,8 +28,8 @@ if( !file_exists("./{$SaveFolder}/{$FileName}") ){
 }
 
 //削除モードか確認する
-$DeleteKeyPure = (String)$_POST["DeleteKey"];
-if( $DeleteKeyPure != "" ){
+$getDeleteKey = (String)$_POST["DeleteKey"];
+if( $getDeleteKey != "" ){
 	$DeleteMode = true;
 }
 switch( $DeleteMode ){
@@ -50,7 +37,7 @@ switch( $DeleteMode ){
 	case true:
 	
 	//リファラーとCookieチェック
-	if( !preg_match("~^{$SettingData[5]}~",$_SERVER["HTTP_REFERER"] )){
+	if( !preg_match("~^{$FullURL}~",$_SERVER["HTTP_REFERER"] )){
 		$ResultMessage .= "パラメーターエラー";
 		$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"button\" class=\"BlueButton\" value=\"戻る\" onclick=\"location.href='./'\"></div>\n";
 		break;
@@ -69,49 +56,40 @@ switch( $DeleteMode ){
 	$ImageDatPath = "./{$LogFolder}/{$RFileName}.dat";
 	$ImageDat = file_get_contents($ImageDatPath);
 	$ImageDatas = explode("\n",$ImageDat);
-	$SetDeleteKeyE = $ImageDatas[3];
+	$ImageDeleteKey = $ImageDatas[3];
+	
+	//旧バージョンのログファイルの場合は削除不可(管理者問い合わせ)
+	if( preg_match("~0\.1~",$ImageDatas[0]) ){
+		$ResultMessage .= "旧バージョンの管理ファイルが使用されている為、削除できません<br>";
+		$ResultMessage .= "詳しくはアップローダー管理者様でお問い合わせください";
+		$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"button\" class=\"BlueButton\" value=\"戻る\" onclick=\"location.href='./'\"></div>\n";
+		break;
+	}
 
 	//削除キーを復元する
-	if( $SetDeleteKeyE != "None" ){
-		if( $DelKeyByPass == 1 ){
-			$DeleteKey = $SetDeleteKeyE;
-		}else{
-			EncInit($MasterKey);
-			$DeleteKey = DecGo($SetDeleteKeyE);
-		}
-	}else{
+	if( $ImageDeleteKey == "None" ){
 		$ResultMessage .= "削除キーが設定されていない為、削除できません";
 		$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"button\" class=\"BlueButton\" value=\"戻る\" onclick=\"location.href='./'\"></div>\n";
 		break;
 	}
 	
-	if( preg_match("~^{$DeleteKey}$~","$DeleteKeyPure" )){
+	//削除キーが一致しているかを確認する
+	if( crypt($getDeleteKey,base64_decode($ImageDeleteKey)) === base64_decode($ImageDeleteKey)) {
 	
 		unlink("./{$SaveFolder}/{$FileName}");
 		unlink("./{$ThumbSaveFolder}/{$FileName}");
 		unlink("./{$LogFolder}/{$RFileName}.dat");
 	
-		//日付一覧から削除する
-		$ImageList = file_get_contents("./{$LogFolder}/ImageList-{$UploadedDate}.txt");
+		//画像一覧ログから削除する
+		$ImageList = file_get_contents("./{$LogFolder}/ImageList.txt");
 		$ImageList = explode("\n",$ImageList);
 		foreach($ImageList as $key => $value) {
-		  if( preg_match("~{$FileName}~",$value) ) {
-		    break;
-		  }
-		}
-		unset($ImageList[$key]);
-		file_put_contents("./{$LogFolder}/ImageList-{$UploadedDate}.txt",implode("\n",$ImageList));
-		
-		//一覧から削除する
-		$ImageListALL = file_get_contents("./{$LogFolder}/ImageList-all.txt");
-		$ImageListALL = explode("\n",$ImageListALL);
-		foreach($ImageListALL as $key => $value) {
 			if( preg_match("~{$FileName}~",$value) ) {
 				break;
 			}
 		}
-		unset($ImageListALL[$key]);
-		file_put_contents("./{$LogFolder}/ImageList-all.txt",implode("\n",$ImageListALL));
+		unset($ImageList[$key]);
+		file_put_contents("./{$LogFolder}/ImageList.txt",implode("\n",$ImageList));
 		
 		$ResultMessage .= "{$FileName} は削除されました\n";
 		$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"button\" class=\"BlueButton\" value=\"完了\" onclick=\"location.href='./'\"></div>\n";
@@ -143,8 +121,9 @@ switch( $DeleteMode ){
 
 }
 
+
 //ロックを解除して開放する
-fclose($ProcessLocking);
+fclose($ProcessLock);
 
 ?>
 <!DOCTYPE html>
@@ -156,8 +135,8 @@ fclose($ProcessLocking);
 <title><?php echo "画像を削除する : {$JlabTitle}"; ?></title>
 
 <!-- Default CSS/Javascript -->
-<link type="text/css" rel="stylesheet" href="./static-data/jlab-script-plus.css">
-<script type="text/javascript" src="./static-data/jlab-script-plus.js"></script>
+<link type="text/css" rel="stylesheet" href="./static/jlab-script-plus.css">
+<script type="text/javascript" src="./static/jlab-script-plus.js"></script>
 
 </head>
 <body>

@@ -1,5 +1,11 @@
 <?php
+
 /*
+	
+	jlab-script-plus custom-html.php
+	Version 0.06 / Kouki Kuriyama
+	https://github.com/kouki-kuriyama/jlab-script-plus
+	
 	index.phpに設定するカスタムHTML用のファイルです。ろだ毎のメニュー作成や追記事項記入にお使いください
 	スクリプトをバージョンアップする度に index.php を編集する必要がなくなります。(このcustom-html.phpの上書きに注意)
 	カスタムHTMLの設定される部分は index.php をご確認ください。

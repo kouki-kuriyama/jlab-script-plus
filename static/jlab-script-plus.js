@@ -10,7 +10,7 @@ var DeleteKey;
 var VersionNumber;
 
 //バージョン情報を設定
-VersionNumber = "jlab-script-plus Ver0.05a";
+VersionNumber = "jlab-script-plus Ver0.06 dev4";
 
 //ドラッグアンドドロップ関数が使用できるか確認する
 function CheckEnableFileAPI(){
@@ -20,7 +20,6 @@ function CheckEnableFileAPI(){
 		PhotoReader = new FileReader();
 	}else{
 		EnableFileAPI = false;
-		document.getElementById("UploaderMessage").innerHTML = "ファイルを選択してください";
 	}
 	
 	return;
@@ -89,7 +88,7 @@ function FileLoad(RawFileData){
 		
 		//メッセージ表示
 		document.getElementById("DragDropCurtainT").innerHTML = "取り込み完了";
-		window.scroll(0,0);
+		if( !NextUploader ){ window.scroll(0,0); }
 		setTimeout("document.getElementById('DragDropCurtain').style.top = '-200px';",1000);
 
 	};
@@ -164,6 +163,9 @@ function urlbox( ub_cmd ){
 //D&Dの場合はAjaxで送信する
 function ImageUploading(){
 
+	//アップロードタスクCookieの変更
+	document.cookie = "UploadTask=Ready";
+
 	if( DragDrop ){
 	
 		//ファイルチェック
@@ -176,20 +178,22 @@ function ImageUploading(){
 		DeleteKey = document.getElementById("DeleteKeyBox").value;
 		xmlRequest.onreadystatechange = function(){
 			if( xmlRequest.readyState == 4 ){
-				document.cookie = "RESULT=" + xmlRequest.responseText + "";
+				document.cookie = "Result=" + xmlRequest.responseText + "";
 				location.href = "./upload.php";
 				return;
 			}
 		}
 		xmlRequest.open("POST","./upload.php",true);
 		xmlRequest.setRequestHeader("content-type","application/x-www-form-urlencoded;charset=UTF-8");
-		xmlRequest.send("type=dd&DeleteKey=" + DeleteKey + "&Image=" + BinaryData + "");
+		xmlRequest.send("Type=dragdrop&DeleteKey=" + DeleteKey + "&Image=" + BinaryData + "");
+		
 	}else{
 	
 		if( document.getElementById("UploadMedia").value == "" ){
 			alert("ファイルを選択してください");
 			return false;
 		}else{
+			document.getElementById("UploaderCurtain").style.display = "block";
 			document.ImageUploader.submit();
 		}
 	}

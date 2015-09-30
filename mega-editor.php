@@ -1,36 +1,26 @@
 <?php
 
+/*
+	
+	jlab-script-plus mega-editor.php
+	Version 0.06 / Kouki Kuriyama
+	https://github.com/kouki-kuriyama/jlab-script-plus
+	
+*/
+
 //保険
 $MegaEditor = false;
 
-//マスターキーを読み込む
-require_once("./masterkey.php");
+//設定とThumb.phpを読み込む
+require_once("./settings.php");
+require_once("./static/Thumb.php");
+
+//関数を読み込む
+require_once("./functions.php");
 
 //引数取得
 $DisplayDay = (string)$_GET["Day"];
 $CurrentPage = $_GET["Page"];
-
-//設定ファイルの読み込みをする
-if( file_exists("./static-data/setting.dat") ){
-	$SettingsData = file_get_contents("./static-data/setting.dat");
-	$SettingData = explode("\n",$SettingsData);
-	
-	$JlabTitle = $SettingData[0];
-	$Admin = $SettingData[1];
-	$SaveFolder = $SettingData[2];
-	$ThumbSaveFolder = $SettingData[3];
-	$LogFolder = $SettingData[4];
-	$FullURL = $SettingData[5];
-	$MaxSize = (int)$SettingData[6] / 1024;
-	$MaxThumbWidth = $SettingData[7];
-	$MaxThumbHeight = $SettingData[8];
-	$DisplayImageCount = $SettingData[9];
-	$SaveDay = $SettingData[10];
-	
-}else{
-	$SettingData = false;
-	echo "<div style=\"margin:2em 0 2em 3em; color:red; font-size:24px\">設定ファイルがありません</div>\n\n";
-}
 
 //送信されるすべてのクエリを読み込み
 $LoginEditor = $_COOKIE["MEditor"];
@@ -58,8 +48,7 @@ else if(( empty($LoginEditor) )&&( !empty($POSTMasterKey) )){
 		$MegaEditor = true;
 		setcookie("MEditor","Login", time()+21600);
 		$MainSetHTML .= "メガエディターではアップロードされた画像を管理することができます。<br>\n";
-		$MainSetHTML .= "アップローダーの設定・マスターキーの変更はファイル本体を編集する必要があります。<br>\n";
-		$MainSetHTML .= "<span style=\"font-size:12px; color:#666\">今後のバージョンアップでメガエディターからアップローダーの設定が変更できるようになる予定です。</span>\n";
+		$MainSetHTML .= "アップローダーの設定・マスターキーの変更は settings.php ファイル本体を編集する必要があります。<br>\n";
 	
 	}else{
 		$MegaEditor = false;
@@ -80,11 +69,12 @@ else if( $LoginEditor == "Login" ){
 	$MegaEditor = true;
 	$MainSetHTML .= "メガエディターではアップロードされた画像を管理することができます。<br>\n";
 	$MainSetHTML .= "アップローダーの設定・マスターキーの変更はファイル本体を編集する必要があります。<br>\n";
-	$MainSetHTML .= "<span style=\"font-size:12px; color:#666\">今後のバージョンアップでメガエディターからアップローダーの設定が変更できるようになる予定です。</span>\n";
 	
 	//すべてのクエリを読み込む
 	$ArcData = $_GET["Arc"];
 	$EditMode = $_GET["EditMode"];
+	
+	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
 	
 	//モード処理(画像のダウンロード)
 	if(( $EditMode == "Dl" )&&( !empty($ArcData) )){
@@ -107,6 +97,8 @@ else if( $LoginEditor == "Login" ){
 			$MainSetHTML = "<span style=\"font-weight:bold; color:red\">{$ArcData} は見つかりませんでした</span>\n";
 		}
 	}
+	
+	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
 	
 	//モード処理(ログのダウンロード)
 	else if(( $EditMode == "LogDl" )&&( !empty($ArcData) )){
@@ -133,6 +125,8 @@ else if( $LoginEditor == "Login" ){
 		}
 	}
 	
+	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
+	
 	//モード処理(画像削除)
 	else if(( $EditMode == "Del" )&&( !empty($ArcData) )){
 	
@@ -153,8 +147,8 @@ else if( $LoginEditor == "Login" ){
 			unlink("./{$ThumbSaveFolder}/{$ArcData}");
 			unlink("./{$LogFolder}/{$RFileName}.dat");
 			
-			//日付一覧から削除する
-			$ImageList = file_get_contents("./{$LogFolder}/ImageList-{$UploadedDate}.txt");
+			//一覧ログから削除する
+			$ImageList = file_get_contents("./{$LogFolder}/ImageList.txt");
 			$ImageList = explode("\n",$ImageList);
 			foreach($ImageList as $key => $value) {
 				if( preg_match("~{$ArcData}~",$value) ) {
@@ -162,18 +156,7 @@ else if( $LoginEditor == "Login" ){
 				}
 			}
 			unset($ImageList[$key]);
-			file_put_contents("./{$LogFolder}/ImageList-{$UploadedDate}.txt",implode("\n",$ImageList));
-			
-			//一覧から削除する
-			$ImageListALL = file_get_contents("./{$LogFolder}/ImageList-all.txt");
-			$ImageListALL = explode("\n",$ImageListALL);
-			foreach($ImageListALL as $key => $value) {
-				if( preg_match("~^{$ArcData}~",$value) ) {
-					break;
-				}
-			}
-			unset($ImageListALL[$key]);
-			file_put_contents("./{$LogFolder}/ImageList-all.txt",implode("\n",$ImageListALL));
+			file_put_contents("./{$LogFolder}/ImageList.txt",implode("\n",$ImageList));
 			
 			//メッセージ
 			$MainSetHTML = "<span style=\"font-weight:bold; color:blue\">{$ArcData} は削除されました</span>\n";
@@ -183,6 +166,8 @@ else if( $LoginEditor == "Login" ){
 			$MainSetHTML = "<span style=\"font-weight:bold; color:red\">{$ArcData} は見つかりませんでした</span>\n";
 		}
 	}
+	
+	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
 	
 	//ログをクイックルック
 	else if(( $EditMode == "qLook" )&&( !empty($ArcData) )){
@@ -204,100 +189,30 @@ else if( $LoginEditor == "Login" ){
 		}
 	}
 	
-	//イメージリストをクイックルック
-	else if(( $EditMode == "qLookList" )&&( $ArcData != "" )){
+	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
 	
-		if( $ArcData == "list" ){
-			$GetLogListDay = "all";
-		}else if( $ArcData == "today" ){
-			$GetLogListDay = date("ymd");
-		}else{
-			$GetLogListDay = date("ymd", strtotime("- {$ArcData} days"));
-		}
+	//イメージリストをクイックルック
+	else if( $EditMode == "qLookList" ){
 		
 		//ファイルが存在するかを確認
-		if( file_exists("./{$LogFolder}/ImageList-{$GetLogListDay}.txt") ){
+		if( file_exists("./{$LogFolder}/ImageList.txt") ){
 			header("Content-type: text/plain");
-			readfile("./{$LogFolder}/ImageList-{$GetLogListDay}.txt");
+			readfile("./{$LogFolder}/ImageList.txt");
 			exit;
 		}else{
 			header("Content-type: text/plain");
-			echo "この日のログはありません";
+			echo "ログはありません";
 			exit;
 		}
 	}
 	
+	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
+	
 	//ログを再生成する
-	else if(( $EditMode == "RestoreLog" )&&( $ArcData != "" )){
-	
-		//リストアする日付を取得
-		$GetRestoreDay = date("ymd", strtotime("- {$ArcData} days"));
+	else if( $EditMode == "RestoreLog" ){
 		
 		//ログファイル名
-		$LogFileName = "./{$LogFolder}/ImageList-{$GetRestoreDay}.txt";
-		
-		//ログが保存済みの場合は一度削除する
-		if( file_exists("./{$LogFileName}") ){
-			unlink($LogFileName);
-		}
-		
-		//ファイルリストの配列を作成する
-		$FileNamelist = array();
-		
-		//画像一覧を取得する
-		if( $GetObFolder = opendir("./{$SaveFolder}/") ){
-			
-			//保存フォルダを走査する
-			while(( $NDFileName = readdir($GetObFolder) ) !== false) {
-				
-				//フォルダ内の画像データを調査し、配列に代入する
-				if(( $NDFileName != "." )&&( $NDFileName != ".." )){
-				
-					//再生成する日付に一致するファイルをGETする
-					if( preg_match("~^(.*){$GetRestoreDay}~",$NDFileName) ){
-					
-						//拡張子と接頭語を取り外す
-						$NDFileName_oq = preg_replace("~[^0-9]~","",$NDFileName);
-					
-						//画像IDからアップロード時間を取得
-						$UpYear = substr($NDFileName_oq,0,2);
-						$UpMonth = substr($NDFileName_oq,2,2);
-						$UpDay = substr($NDFileName_oq,4,2);
-						$UpHour = substr($NDFileName_oq,6,2);
-						$UpMinute = substr($NDFileName_oq,8,2);
-						$UpSecond = substr($NDFileName_oq,10,2);
-						
-						//画像から縦横幅、サイズを取得する
-						list($ImageWidth,$ImageHeight,$MType,$Attr) = getimagesize("./{$SaveFolder}/{$NDFileName}");
-						$FileSizes = round( filesize("./{$SaveFolder}/{$NDFileName}")/1024 );
-						
-						$FileNamelist[] = $NDFileName."#{$UpYear}/{$UpMonth}/{$UpDay} {$UpHour}:{$UpMinute}:{$UpSecond}#{$ImageWidth}#{$ImageHeight}#{$FileSizes}";
-					
-					}
-				}
-			}
-			
-			//フォルダ走査を終了する
-			closedir($GetObFolder);
-		}
-		
-		//新しい順にソートする
-		arsort($FileNamelist);
-		
-		//imagelist.txtに保存する
-		file_put_contents("{$LogFileName}",implode("\n",$FileNamelist));
-		
-		//メッセージ
-		$MainSetHTML = "<span style=\"font-weight:bold; color:blue\">ログファイルをリストアしました</span>\n";
-		$DisplayDay = $ArcData;
-		
-	}
-	
-	//ALLログを再生成する
-	else if( $EditMode == "RestoreALLLog" ){
-		
-		//ログファイル名
-		$LogFileName = "./{$LogFolder}/ImageList-all.txt";
+		$LogFileName = "./{$LogFolder}/ImageList.txt";
 		
 		//ログが保存済みの場合は一度削除する
 		if( file_exists("./{$LogFileName}") ){
@@ -332,13 +247,12 @@ else if( $LoginEditor == "Login" ){
 					$FileSizes = round( filesize("./{$SaveFolder}/{$NDFileName}")/1024 );
 					
 					$FileNamelist[] = $NDFileName."#{$UpYear}/{$UpMonth}/{$UpDay} {$UpHour}:{$UpMinute}:{$UpSecond}#{$ImageWidth}#{$ImageHeight}#{$FileSizes}";
-
+					
 				}
 			}
-		
+			
 			//フォルダ走査を終了する
 			closedir($GetObFolder);
-		
 		}
 		
 		//新しい順にソートする
@@ -349,91 +263,63 @@ else if( $LoginEditor == "Login" ){
 		
 		//メッセージ
 		$MainSetHTML = "<span style=\"font-weight:bold; color:blue\">ログファイルをリストアしました</span>\n";
+		$DisplayDay = $ArcData;
 		
 	}
+	
+	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
 	
 	//保存期間が終了している画像・ログを一括削除
 	else if( $EditMode == "CleanUpExp" ){
-	
-		//期限を取得
-		$SaveDayOver = date("ymd",strtotime("- {$SaveDay} days"));
 		
 		//一覧ログを取得する
-		$ImageListALL = file_get_contents("./{$LogFolder}/ImageList-all.txt");
-		$ImageListALL = explode("\n",$ImageListALL);
-	
-		//画像一覧を取得する
-		if( $GetObFolder = opendir("./{$SaveFolder}/") ){
+		$ImageList = file_get_contents("./{$LogFolder}/ImageList.txt");
+		$ImageList = explode("\n",$ImageList);
 		
-			//保存フォルダを走査する
-			while(( $NDFileName = readdir($GetObFolder) ) !== false) {
-				
-				//フォルダ内の画像データを調査し、配列に代入する
-				if(( $NDFileName != "." )&&( $NDFileName != ".." )){
-				
-					//拡張子と接頭語を取り外す
-					$NDFileName_oq = preg_replace("~[^0-9]~","",$NDFileName);
-					
-					//アップロード日を取得
-					$UpDay = substr($NDFileName_oq,0,6);
-					
-					//もしアップロード日が保存期間を超えていたら、削除する
-					if( $UpDay < $SaveDayOver ){
-					
-						//画像とサムネイルを削除
-						unlink("./{$SaveFolder}/{$NDFileName}");
-						unlink("./{$ThumbSaveFolder}/{$NDFileName}");
-						
-						//拡張子とファイル名を分割してログファイルを削除
-						list($RFileName,$ExtensionID) = explode(".",$NDFileName);
-						unlink("./{$LogFolder}/{$RFileName}.dat");
-						
-						//一覧から削除する
-						$ImageListALLEdited = true;
-						foreach($ImageListALL as $key => $value) {
-							if( preg_match("~{$NDFileName}~",$value) ) {
-								break;
-							}
-						}
-						unset($ImageListALL[$key]);
-					}
-				}
-			}
-			
-			//一覧ファイルを保存
-			if( $ImageListALLEdited ){
-				file_put_contents("./{$LogFolder}/ImageList-all.txt",implode("\n",$ImageListALL));
-			}
-			
-		}
-		
-		//日付別ログを取得して期限切れは削除する
-		if( $GetLogFolder = opendir("./{$LogFolder}/") ){
-		
-			//ログ保存フォルダを走査する
-			while(( $NDLogFileName = readdir($GetLogFolder) ) !== false) {
-				
-				//フォルダ内のログデータを調査し、配列に代入する
-				if(( $NDLogFileName != "." )&&( $NDLogFileName != ".." )){
-				
-					//日付別ログファイルの場合は処理をする
-					if( preg_match("~ImageList-[0-9]+\.txt~",$NDLogFileName )){
-						
-						//拡張子と接頭語を取り外す
-						$LogMadeDate = preg_replace("~[^0-9]~","",$NDLogFileName);
-						
-						//もしアップロード日が保存期間を超えていたら、削除する
-						if( $LogMadeDate < $SaveDayOver ){
-							unlink("./{$LogFolder}/{$NDLogFileName}");
-						}
-					}
-				}
-			}
-		}
+		//(この処理は functions.php に移動しました)
+		TimeLimitDeletion(true);
 		
 		$MainSetHTML = "<span style=\"font-weight:bold; color:blue\">期限切れの画像・ログファイルを削除しました</span>\n";
+	}
+	
+	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
+	
+	//すべてのサムネイルを再生成
+	else if( $EditMode == "RemakeThumb" ){
+		
+		if( $GetTObFolder = opendir("./{$SaveFolder}/") ){
+			
+			//保存フォルダを走査する
+			while(( $NDFileNameThumb = readdir($GetTObFolder) ) !== false) {
+				
+				//フォルダ内の画像データを調査しサムネイルを作成する
+				//サムネイルサイズはsetting.datに設定された値を使用
+				if(( $NDFileNameThumb != "." )&&( $NDFileNameThumb != ".." )){
+					
+					//古いサムネイルを削除する
+					unlink("./{$ThumbSaveFolder}/{$NDFileNameThumb}");
+					
+					//拡張子を取り除く
+					list($ReFileName,$Trash) = explode(".",$NDFileNameThumb);
+					
+					$RemakeThumb = new Image("./{$SaveFolder}/{$NDFileNameThumb}");
+					$RemakeThumb -> name("../{$ThumbSaveFolder}/{$ReFileName}");
+					$RemakeThumb -> width($MaxThumbWidth);
+					$RemakeThumb -> save();
+					
+				}
+			}
+		
+			//フォルダ走査を終了する
+			closedir($GetTObFolder);
+		
+		}
+		
+		$MainSetHTML = "<span style=\"font-weight:bold; color:blue\">サムネイルを再生成しました</span>\n";
 		
 	}
+	
+	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
 	
 	//メガエディターからログアウト
 	else if( $EditMode == "Logout" ){
@@ -442,6 +328,8 @@ else if( $LoginEditor == "Login" ){
 		header("Location:./");
 		exit;
 	}
+	
+	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
 }
 
 ?>
@@ -454,8 +342,8 @@ else if( $LoginEditor == "Login" ){
 <title>メガエディター : <?php echo $JlabTitle; ?></title>
 
 <!-- Default CSS/Javascript -->
-<link type="text/css" rel="stylesheet" href="./static-data/jlab-script-plus.css">
-<script type="text/javascript" src="./static-data/jlab-script-plus.js"></script>
+<link type="text/css" rel="stylesheet" href="./static/jlab-script-plus.css">
+<script type="text/javascript" src="./static/jlab-script-plus.js"></script>
 
 <!-- CSS -->
 <style type="text/css">
@@ -491,23 +379,16 @@ function DeleteImage(ImgName){
 }
 
 //ログを再生成する
-function RestoreLog(RestoreDay){
-
-	if( RestoreDay == "today" ){
-		ResDisDay = "今日";
-		RestoreURL = "./mega-editor.php?EditMode=RestoreLog&Arc=0";
-	}else if(( RestoreDay == "" )||( RestoreDay == "list" )){
-		ResDisDay = "一覧";
-		RestoreDay = "list";
-		RestoreURL = "./mega-editor.php?EditMode=RestoreALLLog";
-	}else{
-		ResDisDay = RestoreDay + "日前";
-		RestoreURL = "./mega-editor.php?EditMode=RestoreLog&Arc=" + RestoreDay + "";
-
+function RestoreLog(){
+	if( window.confirm("一覧ログをリストアします") ){
+		location.href = "./mega-editor.php?EditMode=RestoreLog";
 	}
+}
 
-	if( window.confirm(ResDisDay + "のログをリストアします。\n(※ImageList.txtのログを再生成し、個々のログはリストアしません)") ){
-		location.href = RestoreURL;
+//サムネイルの再生成をする
+function RemakeThumb(){
+	if( window.confirm("すべての画像のサムネイルを再生成します\nサムネイル幅：<?php echo $MaxThumbWidth; ?>px\nサムネイル高：<?php echo $MaxThumbHeight; ?>px\n(変更する場合はsettings.phpで再設定してください)")){
+		location.href = "./mega-editor.php?EditMode=RemakeThumb";
 	}
 }
 
@@ -517,6 +398,7 @@ function CleanUpExp(){
 		location.href = "./mega-editor.php?EditMode=CleanUpExp";
 	}
 }
+
 </script>
 <?php
 }
@@ -543,13 +425,9 @@ function CleanUpExp(){
 <ul style="padding:0; list-style:none;">
 <?php
 if( $MegaEditor ){
-	if(( $DisplayDay == "" )||( $DisplayDay == "list" )){
-		echo "<li><a href=\"mega-editor.php?EditMode=qLookList&Arc=list\" target=\"_blank\">一覧ログをクイックルック</a></li>\n";
-		echo "<li><a href=\"mega-editor.php\" onclick=\"RestoreLog('list'); return false;\">一覧ログをリストア</a></li>\n";
-	}else{
-		echo "<li><a href=\"mega-editor.php?EditMode=qLookList&Arc={$DisplayDay}\" target=\"_blank\">この日のログをクイックルック</a></li>\n";
-		echo "<li><a href=\"mega-editor.php\" onclick=\"RestoreLog('{$DisplayDay}'); return false;\">この日のログをリストア</a></li>\n";
-	}
+	echo "<li><a href=\"mega-editor.php?EditMode=qLookList\" target=\"_blank\">ログをクイックルック</a></li>\n";
+	echo "<li><a href=\"mega-editor.php\" onclick=\"RestoreLog(); return false;\">ログをリストア</a></li>\n";
+	echo "<li><a href=\"mega-editor.php?\" onclick=\"RemakeThumb(); return false;\">すべてのサムネイルを再生成</a></li>\n";
 	echo "<li><a href=\"mega-editor.php\" onclick=\"CleanUpExp(); return false;\">期限切れの画像を一括削除</a></li>\n";
 	echo "<li><a href=\"?EditMode=Logout\">ログアウト</a></li>\n";
 }else{
@@ -567,22 +445,22 @@ if( $MegaEditor ){
 	echo "<!-- ImageList -->\n";
 	echo "<div id=\"ImageList\">\n\n";
 	
+	//ログファイル名
+	$LogFileName = "./{$LogFolder}/ImageList.txt";
+	
 	//今日を表示
 	if( $DisplayDay == "today" ){
 		$SetDay = date("ymd");
-		$LogFileName = "./{$LogFolder}/ImageList-{$SetDay}.txt";
 	}
 	
 	//一覧表示
 	else if(( $DisplayDay == "" )||( $DisplayDay == "list" )){
 		$DisplayDay = "list";
-		$LogFileName = "./{$LogFolder}/ImageList-all.txt";
 	}
 	
 	//指定日を表示
 	else{
 		$SetDay = date("ymd", strtotime("- {$DisplayDay} days"));
-		$LogFileName = "./{$LogFolder}/ImageList-{$SetDay}.txt";
 	}
 	
 	//ページ未指定の場合は1ページ目を表示
@@ -618,55 +496,64 @@ if( $MegaEditor ){
 	$DayLabel .= "</ul>\n";
 	$DayLabel .= "</div>\n\n";
 	
-	if( file_exists($LogFileName) ){
-	
-		$ListIn = file_get_contents($LogFileName);
-		$ImageList = explode("\n",$ListIn);
-		$ImageCount = count($ImageList);
-		array_unshift($ImageList,"IMGLIST");
-	
-		$PageLabel = "<div class=\"ImagePageLink\">\n";
-		$PageLabel .= "<ul style=\"padding:0\">\n";
-		$PageCount = ceil($ImageCount/$DisplayImageCount);
-		for( $PGC = 1; $PGC <= $PageCount; $PGC++ ){
-			if( $CurrentPage == $PGC ){
-				$PageLabel .= "<li style=\"border-bottom:2px solid #ededed\">{$PGC}</li>\n";
-			}else{
-				$PageLabel .= "<a href=\"?Day={$DisplayDay}&Page={$PGC}\"><li>{$PGC}</li></a>\n";
-			}
-		}
-		$PageLabel .= "</ul>\n";
-		$PageLabel .= "</div>\n\n";
+	$ListIn = file_get_contents($LogFileName);
+	$ImageList = explode("\n",$ListIn);
 		
-		echo $DayLabel;
+	//日付が指定されている場合は指定日のみ抽出する
+	if(( $DisplayDay != "" )&&( $DisplayDay != "list" )){
+		$ImageList = preg_grep("~^{$FileBaseName}{$SetDay}~",$ImageList);
+		array_values($ImageList);
+	}
+	$ImageCount = count($ImageList);
+	array_unshift($ImageList,"IMGLIST");
+
 	
-		
-		for( $i = $DisplayImageCount*$CurrentPage-($DisplayImageCount-1); $i <= $DisplayImageCount*$CurrentPage; $i++ ){
-	
-			if( $ImageList[$i] == "" ){
-				break;
-			}
-	
-			$ListElement = explode("#",$ImageList[$i]);
-			if( $ListElement[0] == "" ){
-				continue;
-			}
-	
-			//HTML出力
-			echo "<div class=\"ImageElements\">\n";
-			echo "<div>投稿日：{$ListElement[1]} ({$ListElement[2]}x{$ListElement[3]} : {$ListElement[4]}KB)</div>\n";
-			echo "<a href=\"{$SaveFolder}/{$ListElement[0]}\" target=\"_blank\"><div class=\"InitImage\"><img src=\"{$ThumbSaveFolder}/{$ListElement[0]}\"></div></a>\n";
-			echo "<div><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$FullURL}{$SaveFolder}/{$ListElement[0]}\" readonly></div>\n";
-			echo "<div>\n";
-			echo "<input type=\"button\" class=\"RedButton\" value=\"Delete\" onclick=\"DeleteImage('{$ListElement[0]}')\"> ";
-			echo "<input type=\"button\" class=\"BlueButton\" value=\"Download Image\" onclick=\"location.href='./mega-editor.php?EditMode=Dl&Arc={$ListElement[0]}'\"> ";
-			echo "<input type=\"button\" class=\"BlueButton\" value=\"Download Log(.txt)\" onclick=\"location.href='./mega-editor.php?EditMode=LogDl&Arc={$ListElement[0]}'\"><br>\n";
-			echo "<input type=\"button\" style=\"margin-top:4px\" class=\"BlueButton\" value=\"QuickLook Log\" onclick=\"window.open('./mega-editor.php?EditMode=qLook&Arc={$ListElement[0]}')\">\n";
-			echo "</div>\n";
-			echo "<br style=\"clear:left;\">\n";
-			echo "</div>\n\n";
-	
+	$PageLabel = "<div class=\"ImagePageLink\">\n";
+	$PageLabel .= "<ul style=\"padding:0\">\n";
+	$PageCount = ceil($ImageCount/$DisplayImageCount);
+	for( $PGC = 1; $PGC <= $PageCount; $PGC++ ){
+		if( $CurrentPage == $PGC ){
+			$PageLabel .= "<li style=\"border-bottom:2px solid #ededed\">{$PGC}</li>\n";
+		}else{
+			$PageLabel .= "<a href=\"?Day={$DisplayDay}&Page={$PGC}\"><li>{$PGC}</li></a>\n";
 		}
+	}
+	$PageLabel .= "</ul>\n";
+	$PageLabel .= "</div>\n\n";
+	
+	echo $DayLabel;
+	
+	for( $i = $DisplayImageCount*$CurrentPage-($DisplayImageCount-1); $i <= $DisplayImageCount*$CurrentPage; $i++ ){
+	
+		if( $ImageList[$i] == "" ){
+			break;
+		}
+	
+		$ListElement = explode("#",$ImageList[$i]);
+		if( $ListElement[0] == "" ){
+			continue;
+		}
+	
+		//HTML出力
+		echo "<div class=\"ImageElements\">\n";
+		echo "<div>投稿日：{$ListElement[1]} ({$ListElement[2]}x{$ListElement[3]} : {$ListElement[4]}KB)</div>\n";
+		echo "<a href=\"{$SaveFolder}/{$ListElement[0]}\" target=\"_blank\"><div class=\"InitImage\"><img src=\"{$ThumbSaveFolder}/{$ListElement[0]}\"></div></a>\n";
+		echo "<div><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$FullURL}{$SaveFolder}/{$ListElement[0]}\" readonly></div>\n";
+		echo "<div>\n";
+		echo "<input type=\"button\" class=\"RedButton\" value=\"Delete\" onclick=\"DeleteImage('{$ListElement[0]}')\"> ";
+		echo "<input type=\"button\" class=\"BlueButton\" value=\"Download Image\" onclick=\"location.href='./mega-editor.php?EditMode=Dl&Arc={$ListElement[0]}'\"> ";
+		echo "<input type=\"button\" class=\"BlueButton\" value=\"Download Log(.txt)\" onclick=\"location.href='./mega-editor.php?EditMode=LogDl&Arc={$ListElement[0]}'\"><br>\n";
+		echo "<input type=\"button\" style=\"margin-top:4px\" class=\"BlueButton\" value=\"QuickLook Log\" onclick=\"window.open('./mega-editor.php?EditMode=qLook&Arc={$ListElement[0]}')\">\n";
+		echo "</div>\n";
+		echo "<br style=\"clear:left;\">\n";
+		echo "</div>\n\n";
+		
+	}
+	
+	//画像が存在しない場合はメッセージのみ
+	if( $ImageCount == 0 ){
+		echo "<div style=\"margin-left: 3em; padding: 2em 0;\">\n画像はアップロードされていません\n</div>\n\n";
+	}else{
 		
 		$PrevLinkNum = $CurrentPage-1;
 		$NextLinkNum = $CurrentPage+1;
@@ -690,11 +577,6 @@ if( $MegaEditor ){
 		
 		echo $PageLabel;
 		
-	}else{
-	
-		echo $DayLabel;
-		echo "<div style=\"margin-left: 3em; padding: 2em 0;\">\n画像はアップロードされていません<br>\n画像がアップロードされるとログが生成されます</div>\n\n";
-	
 	}
 
 }
@@ -705,7 +587,7 @@ if( $MegaEditor ){
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank"><script type="text/javascript">document.write(VersionNumber);</script> / MegaEditor v1.3</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank"><script type="text/javascript">document.write(VersionNumber);</script> / MegaEditor </a></p>
 </div>
 </footer>
 
