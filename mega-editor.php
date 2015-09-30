@@ -3,7 +3,7 @@
 /*
 	
 	jlab-script-plus mega-editor.php
-	Version 0.06 dev4 / Kouki Kuriyama
+	Version 0.06 / Kouki Kuriyama
 	https://github.com/kouki-kuriyama/jlab-script-plus
 	
 */
@@ -587,7 +587,7 @@ if( $MegaEditor ){
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em;">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank"><script type="text/javascript">document.write(VersionNumber);</script> / MegaEditor dev4</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank"><script type="text/javascript">document.write(VersionNumber);</script> / MegaEditor </a></p>
 </div>
 </footer>
 

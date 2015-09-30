@@ -3,7 +3,7 @@
 /*
 	
 	jlab-script-plus index.php
-	Version 0.06 dev4 / Kouki Kuriyama
+	Version 0.06 / Kouki Kuriyama
 	https://github.com/kouki-kuriyama/jlab-script-plus
 	
 */
@@ -108,9 +108,18 @@ var OpenURLBox = false;
 var UseDragDrop = <?php echo $UseDragDrop; ?>;
 var NextUploader = false;
 
-//ドラッグアンドドロップチェック
 window.onload = function(){
+
+	//ドラッグアンドドロップチェック
 	CheckEnableFileAPI();
+
+	//URLBoxを確認
+	SavedURLBox = localStorage.getItem("SavedURLBox");
+	console.log(SavedURLBox);
+	if( SavedURLBox != "" ){
+		urlbox(SavedURLBox);
+	}
+
 }
 </script>
 
@@ -308,6 +317,8 @@ if( $ImageCount == 0 ){
 	<div id="URLBoxInner">
 	<textarea id="urlbox-textarea" class="TextBox" style="width:60%; height:80px; margin-bottom:10px"></textarea><br>
 	<input type="button" class="BlueButton" value="クリア" onclick="urlbox('clear')">
+	<input type="button" class="BlueButton" value="URLをコピー" onclick="CopyURLBox('urlbox-textarea')">
+	<span style="color:#ccc; font-size:12px;">　URLBoxに追加されたURLはクリアされるまで自動で保存されます</span>
 	</div>
 </div>
 

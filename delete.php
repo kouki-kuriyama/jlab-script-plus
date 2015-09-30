@@ -3,7 +3,7 @@
 /*
 	
 	jlab-script-plus delete.php
-	Version 0.06 dev4 / Kouki Kuriyama
+	Version 0.06 / Kouki Kuriyama
 	https://github.com/kouki-kuriyama/jlab-script-plus
 	
 */

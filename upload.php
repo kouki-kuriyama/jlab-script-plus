@@ -3,13 +3,13 @@
 /*
 	
 	jlab-script-plus upload.php
-	Version 0.06 dev4 / Kouki Kuriyama
+	Version 0.06 / Kouki Kuriyama
 	https://github.com/kouki-kuriyama/jlab-script-plus
 	
 */
 
 //HTMLで出力する・セッションCookieのスタート
-header("Content-Type:text/html charset=UTF-8");
+header("Content-Type:text/html; charset=UTF-8");
 ini_set("display_errors",0);
 session_start();
 
@@ -140,10 +140,15 @@ if(( $ExecuteType == "dragdrop" )||( $ExecuteType == "dialog" )){
 		$CreateThumb -> name("../{$ThumbSaveFolder}/{$FileName}");
 		$CreateThumb -> width($MaxThumbWidth);
 		$CreateThumb -> save();
+		$ImageThumbPath = "./{$ThumbSaveFolder}/{$ImageFileName}";
 		
 		//ファイルサイズを取得
 		$FileSizes = round( filesize($ImagePath)/1024 );
 		
+ 		//パーミッション設定により画像が正しく表示されない場合は chmod関数 のコメントアウトを外して適切なパーミッションに設定してください
+		//chmod($ImagePath, 0606);
+ 		//chmod($ImageThumbPath, 0606); 
+
 		//画像情報を保存する
 		$ImageDatPath = "./{$LogFolder}/{$FileName}.dat";
 		$ImageData = "JLAB Base ScriptPlus DataPackage Version2\n";
@@ -174,6 +179,9 @@ if(( $ExecuteType == "dragdrop" )||( $ExecuteType == "dialog" )){
 		
 		//削除キーをCookieに保存し・ロックを解除して開放する
 		setcookie("DeleteKey",$getDeleteKey, time()+60*60*24*14, "/");
+		if( $LocalDeleteKey == "" ){
+			$LocalDeleteKey = $getDeleteKey;
+		}
 		fclose($ProcessLock);
 		
 		//ドラッグドロップアップロードの場合はアップロード結果をAjaxで返す
@@ -222,9 +230,13 @@ if(( $ErrorCode == 100 )||( $Result == "100" )){
 	//URLリングが有効な場合はURLBoxを表示する
 	if( $_COOKIE["URLRing"] != "" ){
 		$URLRing = $_COOKIE["URLRing"];
+		$URLCopyButton = "display:inline";
 		$ResultMessage .= "<div style=\"margin-top:1em\"><textarea id=\"urlbox-textarea\" class=\"TextBox\" wrap=\"off\" style=\"width:350px; height:80px; resize:none;\" onclick=\"this.select(0,this.value.length)\" readonly>{$URLRing}\n{$TransportURL}{$Result}</textarea></div>\n";
+	}else{
+		$URLCopyButton = "display:none";
 	}
 	$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$TransportURL}{$Result}\" readonly></div>\n";
+
 
 	//セッションCookieにリングURLを追加する
 	setcookie("URLRing", "{$URLRing}\n{$TransportURL}{$Result}");
@@ -304,7 +316,10 @@ window.onload = function(){
 	<!-- Result -->
 	<div id="ResultP">
 	<?php echo "{$ResultMessage}\n"; ?>
-	<div style="margin-top:1em"><input type="button" class="BlueButton" value="完了" onclick="location.href='./'"></div>
+	<div style="margin-top:1em">
+		<input type="button" class="BlueButton" value="完了" onclick="location.href='./'">
+		<input type="button" class="BlueButton" value="URLをコピー" onclick="CopyURLBox('urlbox-textarea')" style="<?php echo $URLCopyButton; ?>">
+	</div>
 	</div>
 	
 	<!-- NextUpload -->
