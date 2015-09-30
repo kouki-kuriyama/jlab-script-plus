@@ -115,8 +115,7 @@ window.onload = function(){
 
 	//URLBoxを確認
 	SavedURLBox = localStorage.getItem("SavedURLBox");
-	console.log(SavedURLBox);
-	if( SavedURLBox != "" ){
+	if(( SavedURLBox != "" )&&( SavedURLBox != null )&&( SavedURLBox != undefined )){
 		urlbox(SavedURLBox);
 	}
 
