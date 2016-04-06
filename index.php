@@ -3,20 +3,15 @@
 /*
 	
 	jlab-script-plus index.php
-	Version 0.06 / Kouki Kuriyama
+	Version 0.07a / Kouki Kuriyama
 	https://github.com/kouki-kuriyama/jlab-script-plus
 	
 */
 
 //設定ファイル・カスタムHTMLを読み込む
+require_once("./functions.php");
 require_once("./settings.php");
 require_once("./custom-html.php");
-
-//セッションCookieのスタート
-session_start();
-	
-//削除キーのCookieを読み込む
-$LocalDeleteKey = $_COOKIE["DeleteKey"];
 
 //日付とページを取得する
 $DisplayDay = $_GET["Day"];
@@ -54,14 +49,6 @@ else{
 	$SetDay = date("ymd", strtotime("- {$DisplayDay} days"));
 }
 
-//アップロード待機中Cookieを設定
-//結果表示のCookieを削除
-setcookie("UploadTask","Ready");
-setcookie("Result", "",time() - 1800);
-if( $_COOKIE["URLRing"] != "" ){
-	setcookie("URLRing", "",time() - 1800);
-}
-
 //トップページ以外は検索結果に表示しない
 if( $CurrentPage == "" ){
 	$CurrentPage = 1;
@@ -83,11 +70,6 @@ if( $CurrentPage == "" ){
 
 <!-- CSS -->
 <style type="text/css">
-#Preview img {
-	max-width:<?php echo $MaxThumbWidth; ?>px;
-	max-height:<?php echo $MaxThumbHeight; ?>px;
-}
-
 .InitImage {
 	width:<?php echo $MaxThumbWidth; ?>px;
 	float:left;
@@ -104,19 +86,22 @@ if( $CurrentPage == "" ){
 
 <!-- Javascript -->
 <script type="text/javascript">
-var OpenURLBox = false;
-var UseDragDrop = <?php echo $UseDragDrop; ?>;
-var NextUploader = false;
+var UseEnhanceUploader = <?php echo $UseDragDrop; ?>;
+var MultiUploadLimit = <?php echo $MultiUploadLimit; ?>;
 
 window.onload = function(){
 
 	//ドラッグアンドドロップチェック
 	CheckEnableFileAPI();
 
-	//URLBoxを確認
+	//URLBoxと削除キーを確認
 	SavedURLBox = localStorage.getItem("SavedURLBox");
-	if(( SavedURLBox != "" )&&( SavedURLBox != null )&&( SavedURLBox != undefined )){
+	LocalDeleteKey = localStorage.getItem("LocalDeleteKey");
+	if( SavedURLBox != "" ){
 		urlbox(SavedURLBox);
+	}
+	if( LocalDeleteKey != "" ){
+		document.getElementById("DeleteKeyBox").value = LocalDeleteKey;
 	}
 
 }
@@ -143,7 +128,14 @@ window.onload = function(){
 	
 		<!-- Curtain -->
 		<div id="UploaderCurtain">
-		<div style="margin-top:30px; font-size:18px;">アップロード中です...</div>
+		<div id="UploaderCurtainInner" style="margin-top:30px; font-size:18px;">
+			<p id="UploaderCurtainMessage"></p>
+			<p id="UploaderCurtainTextBox" style="display:none"><textarea id="CompleteUploadURLTextBox" style="width:300px; height:120px;" readonly="true"></textarea></p>
+			<p id="ResultButtonArea" style="display:none">
+				<input type="button" class="BlueButton" value="OK" onclick="AllClear('Complete')">
+				<input type="button" class="BlueButton" value="AddURL" onclick="urlbox(document.getElementById('CompleteUploadURLTextBox').value); AllClear('Complete');">
+			</p>
+		</div>
 		</div>
 	
 		<!-- JlabRing : 実況ろだに参加する際は下のコメントアウトを除去して下さい -->
@@ -152,25 +144,26 @@ window.onload = function(){
 		-->
 	
 		<span id="UploaderMessage"><?php echo $UploaderReadyMessage; ?></span>
-		<form method="post" enctype="multipart/form-data" id="UploaderPanel" name="ImageUploader" action="upload.php">
+		<form method="post" enctype="multipart/form-data" id="UploaderPanel" target="BasicResultBox" name="ImageUploader" action="upload.php">
 			<p id="Preview"></p>
 			<div style="font-weight:bold">ファイル</div>
-			<div style="width:400px !important;"><input type="file" name="Image" id="UploadMedia"><span id="LoadedFileName"></span></div>
-			<div style="display:none"><input type="hidden" name="Type" value="dialog"></div>
+			<div style="width:400px !important;"><span id="FileTag"><input type="file" multiple="true" name="Image" id="UploadMedia" onchange="onFileSelected()"></span><span id="LoadedFileName"></span></div>
+			<div style="display:none"><input type="hidden" name="Type" value="Basic"></div>
 			<br style="clear:both">
 			<div style="font-weight:bold">削除キー</div>
-			<div style="width:400px !important;"><input type="password" id="DeleteKeyBox" name="DeleteKey" value="<?php echo $LocalDeleteKey; ?>" class="TextBox"> (Max 16Byte)</div>
+			<div style="width:400px !important;"><input type="password" id="DeleteKeyBox" name="DeleteKey" class="TextBox"> (Max 16Byte)</div>
 			<br style="clear:both">
 			<div style="font-weight:bold">保存期間</div>
 			<div style="width:400px !important;"><?php echo date("Y年n月j日")."〜".date("Y年n月j日",strtotime("+ {$SaveDay} days")); ?></div>
 			<br style="clear:both">
 			<div style="width:400px"><input type="button" class="BlueButton" value="アップロード" onclick="ImageUploading()"> <input type="button" class="RedButton" value="リセット" onclick="AllClear()"></div>
 			<br style="clear:both">
+			<iframe id="BasicResultBoxID" name="BasicResultBox" style="width:0px; height:0px; border:0px; display:none;" onload="ResultFlushBasic()"></iframe>
 		</form>
 	
 		<ul style="list-style:none; padding:0; margin:0">
 			<li>JPG GIF PNG / MAX <span style="font-size:18px"><?php echo $DisplayMaxSize; ?></span>KB / <span style="font-size:20px"><?php echo $SaveDay; ?></span>日間保存 / Admin <?php echo $Admin; ?></li>
-			<li>連投可能 / URL [<?php echo "{$TransportURL}{$FileBaseName}"; ?>+number.ext]</li>
+			<li><span id="UploaderVersion">Enhanceモード</span> / 連投可能 / URL [<?php echo "{$TransportURL}{$FileBaseName}"; ?>+number.ext]</li>
 		</ul>
 		
 		<!-- CustomHTML 2 -->

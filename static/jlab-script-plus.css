@@ -123,6 +123,12 @@ h1 {
 	float:left;
 }
 
+#Preview img {
+	max-width:150px;
+	max-height:150px;
+	margin:0 5px 5px 0;
+}
+
 #ImageList {
 	background:#fff;
 	border-top:1px solid #ccc;
