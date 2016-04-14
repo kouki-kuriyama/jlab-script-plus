@@ -16,18 +16,53 @@ var ReadyImageNum = 0;
 var xmlRequest = new XMLHttpRequest();
 
 //バージョン情報を設定
-var VersionNumber = "jlab-script-plus Ver0.07a";
+var VersionNumber = "jlab-script-plus Ver0.07b";
 
 //FileAPIが使用できるか確認する
 function CheckEnableFileAPI(){
 
-	if( window.File && window.FileReader && UseEnhanceUploader ){
+	//Basicモード設定を確認
+	var ForceBasic = localStorage.getItem("ForceBasic");
+	Boolean(ForceBasic);
+
+	if( !ForceBasic && window.File && window.FileReader && UseEnhanceUploader ){
 		EnableFileAPI = true;
 		PhotoReader = new FileReader();
+		document.getElementById("UploaderMessage").innerHTML = "画像をブラウザ上に<strong>ドラッグアンドドロップ</strong>するか、ファイルを選択してください";
 	}else{
 		EnableFileAPI = false;
 		document.getElementById("UploaderVersion").innerHTML = "Basicモード";
+		document.getElementById("UploaderMessage").innerHTML = "ファイルを選択してください";
+		if( ForceBasic ){
+			document.getElementById("ModeChangeLink").innerHTML = "Enhanceモードを使用する";
+		}else{
+			document.getElementById("ModeChangeLink").innerHTML = "";
+		}
 		document.getElementById("UploadMedia").multiple = false;
+	}
+	
+	return;
+
+}
+
+//削除キーを確認する
+function CheckLocalDeleteKey(){
+
+	var LocalDeleteKey = localStorage.getItem("LocalDeleteKey");
+	if( LocalDeleteKey != "" ){
+		document.getElementById("DeleteKeyBox").value = LocalDeleteKey;
+	}
+	
+	return;
+	
+}
+
+//URLBoxのバックアップを確認する
+function CheckSavedURLBox(){
+
+	var SavedURLBox = localStorage.getItem("SavedURLBox");
+	if(( SavedURLBox != "" )&&( SavedURLBox != null )){
+		urlbox(SavedURLBox);
 	}
 	
 	return;
@@ -61,7 +96,7 @@ function onFileSelected(){
 		RawFileDataCount = document.getElementById("UploadMedia").files.length;
 		FileLoad(0);
 	}else{
-		document.getElementById("Preview").innerHTML = "<span style=\"color:#ccc\">プレビューは表示されません</span>";
+		document.getElementById("Preview").innerHTML = "<span style=\"color:#ccc\">Basicモードではプレビューは表示されません</span>";
 	}
 }
 
@@ -184,6 +219,11 @@ function ImageCancel( SelectImageBoxNum ){
 function AllClear(Mode){
 
 	if( Mode == "Complete" ){
+		if( document.getElementById("AutoReload").checked ){
+			location.reload(true);
+			return;
+		}
+	
 		Processing = false;
 		document.getElementById("UploaderCurtain").style.display = "none";
 		document.getElementById("UploaderCurtainMessage").innerHTML = "";
@@ -241,37 +281,8 @@ function ImageUploading(){
 		//初期化
 		var Uploading = 0;
 		
-		//アップロード用関数
-		GoUpload = function(){
-			
-			//次の配列の画像をアップロード
-			//（1枚目の場合は[1]のアップロード）
-			Uploading++;
-			
-			//POSTデータを作成する
-			//（Canceledはユーザー側で取り消しを行い配列にデータが存在しない場合）
-			if(( BinaryData[Uploading] == undefined )||( BinaryData[Uploading] == "" )){
-				alert("エラーが発生しました\nページを更新してください");
-				return;
-			}else if( BinaryData[Uploading] == "Canceled" ){
-				GoUpload();
-				return;
-			}
-			
-			//メッセージ表示
-			document.getElementById("UploaderCurtainMessage").innerHTML = "アップロード中です…";
-			
-			//Ajax送信
-			xmlRequest.open("POST","./upload.php",true);
-			xmlRequest.onreadystatechange = ResultFlush;
-			xmlRequest.setRequestHeader("content-type","application/x-www-form-urlencoded;charset=UTF-8");
-			xmlRequest.send("Image=" + BinaryData[Uploading] + "&Uploading=" + Uploading + "&MaxBox=" + ImageBoxNum + "&DeleteKey=" + DeleteKey + "&Type=Enhance");
-			
-		}
-		
-		GoUpload();
-		
 		//アップロードが完了した順にAjaxでフラッシュしていく
+		//結果表示用関数を先に定義する
 		function ResultFlush(){
 		
 			if( xmlRequest.readyState == 4 ){
@@ -326,6 +337,37 @@ function ImageUploading(){
 			
 			return;
 		}
+		
+		//アップロード用関数
+		function GoUpload(){
+			
+			//次の配列の画像をアップロード
+			//（1枚目の場合は[1]のアップロード）
+			Uploading++;
+			
+			//POSTデータを作成する
+			//（Canceledはユーザー側で取り消しを行い配列にデータが存在しない場合）
+			if(( BinaryData[Uploading] == undefined )||( BinaryData[Uploading] == "" )){
+				alert("エラーが発生しました\nページを更新してください");
+				return;
+			}else if( BinaryData[Uploading] == "Canceled" ){
+				GoUpload();
+				return;
+			}
+			
+			//メッセージ表示
+			document.getElementById("UploaderCurtainMessage").innerHTML = "アップロード中です…";
+			
+			//Ajax送信
+			xmlRequest.open("POST","./upload.php",true);
+			xmlRequest.onreadystatechange = ResultFlush;
+			xmlRequest.setRequestHeader("content-type","application/x-www-form-urlencoded;charset=UTF-8");
+			xmlRequest.send("Image=" + BinaryData[Uploading] + "&Uploading=" + Uploading + "&MaxBox=" + ImageBoxNum + "&DeleteKey=" + DeleteKey + "&Type=Enhance");
+			
+		}
+		
+		GoUpload();
+		return;
 	}
 	
 	//ベーシックアップローダー
@@ -379,6 +421,28 @@ function ResultFlushBasic(){
 	return;
 
 }
+
+//アップローダーの手動切り替え
+function SetForceBasic(){
+
+	//Basicモード設定を確認
+	var ForceBasic = localStorage.getItem("ForceBasic");
+	Boolean(ForceBasic);
+	
+	if( !ForceBasic ){
+		alert("Basicモードに切り替えます。\nBasicモードではドラッグアンドドロップと複数枚アップロード機能が使用できなくなります。この設定はいつでも変更できます。");
+		localStorage.setItem("ForceBasic","1");
+		location.reload(true);
+	}else{
+		alert("Enhanceモードに切り替えます。");
+		localStorage.setItem("ForceBasic","");
+		location.reload(true);
+	}
+	
+	return;
+	
+}
+
 //URLBoxの表示・非表示
 function ToggleURLBox(){
 
@@ -397,6 +461,7 @@ function ToggleURLBox(){
 }
 
 //URLBoxのコピー
+//※Chrome及びFirefoxはexecCommandを使用する
 function CopyURLBox( BoxID ){
 
 	//Internet Explorer

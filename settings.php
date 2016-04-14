@@ -3,7 +3,7 @@
 /*
 	
 	jlab-script-plus settings.php
-	Version 0.07a / Kouki Kuriyama
+	Version 0.07b / Kouki Kuriyama
 	https://github.com/kouki-kuriyama/jlab-script-plus
 	
 	■ jlab-script-plus アップローダー設定ファイル ■
@@ -36,16 +36,16 @@ $LogFolder = 'd';
 $FullURL = 'http://www.jikkyo.org/jlab-script-plus/';
 
 //ファイル名接頭語(不要な場合は空欄にしてください)
-$FileBaseName = 'develop';
+$FileBaseName = 'test';
 
 //実況ろだのタイトル
-$JlabTitle = '実況ろだDEVELOP';
+$JlabTitle = '実況ろだTEST';
 
 //画像の保存日数(日間)
 $SaveDay = 5;
 
 //画像の最大サイズ(キロバイト)
-$MaxSize = 10240;
+$MaxSize = 1024;
 
 //サムネイル画像の最大横幅(ピクセル)
 $MaxThumbWidth = 240;

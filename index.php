@@ -3,7 +3,7 @@
 /*
 	
 	jlab-script-plus index.php
-	Version 0.07a / Kouki Kuriyama
+	Version 0.07b / Kouki Kuriyama
 	https://github.com/kouki-kuriyama/jlab-script-plus
 	
 */
@@ -19,13 +19,6 @@ $CurrentPage = $_GET["Page"];
 
 //ログファイルのパス
 $LogFileName = "./{$LogFolder}/ImageList.txt";
-
-//ドラッグアンドドロップアップロードの確認
-if( $UseDragDrop === "true" ){
-	$UploaderReadyMessage = "画像をブラウザ上に<strong>ドラッグアンドドロップ</strong>するか、ファイルを選択してください";
-}else{
-	$UploaderReadyMessage = "ファイルを選択してください";
-}
 
 //今日を表示
 if( $DisplayDay == "today" ){
@@ -91,18 +84,14 @@ var MultiUploadLimit = <?php echo $MultiUploadLimit; ?>;
 
 window.onload = function(){
 
-	//ドラッグアンドドロップチェック
+	//ドラッグアンドドロップ機能が使えるかを確認する
 	CheckEnableFileAPI();
 
-	//URLBoxと削除キーを確認
-	SavedURLBox = localStorage.getItem("SavedURLBox");
-	LocalDeleteKey = localStorage.getItem("LocalDeleteKey");
-	if( SavedURLBox != "" ){
-		urlbox(SavedURLBox);
-	}
-	if( LocalDeleteKey != "" ){
-		document.getElementById("DeleteKeyBox").value = LocalDeleteKey;
-	}
+	//URLBoxと削除キーを確認する
+	CheckLocalDeleteKey();
+	
+	//URLBoxのバックアップを確認
+	CheckSavedURLBox();
 
 }
 </script>
@@ -130,10 +119,11 @@ window.onload = function(){
 		<div id="UploaderCurtain">
 		<div id="UploaderCurtainInner" style="margin-top:30px; font-size:18px;">
 			<p id="UploaderCurtainMessage"></p>
-			<p id="UploaderCurtainTextBox" style="display:none"><textarea id="CompleteUploadURLTextBox" style="width:300px; height:120px;" readonly="true"></textarea></p>
+			<p id="UploaderCurtainTextBox" style="display:none"><textarea id="CompleteUploadURLTextBox" wrap="off" style="width:300px; height:120px;" readonly="true" onclick="this.select(0,this.value.length)"></textarea></p>
 			<p id="ResultButtonArea" style="display:none">
 				<input type="button" class="BlueButton" value="OK" onclick="AllClear('Complete')">
-				<input type="button" class="BlueButton" value="AddURL" onclick="urlbox(document.getElementById('CompleteUploadURLTextBox').value); AllClear('Complete');">
+				<input type="button" class="BlueButton" value="AddURL" onclick="urlbox(document.getElementById('CompleteUploadURLTextBox').value); AllClear('Complete');"><br>
+				<span style="font-size:12px"><label><input type="checkbox" id="AutoReload"> アップロード後にページを自動更新する</label></span>
 			</p>
 		</div>
 		</div>
@@ -143,7 +133,7 @@ window.onload = function(){
 		<iframe src="http://livech.sakura.ne.jp/jlab/ring.html" id="JlabRing" frameborder="no" scrolling="no"></iframe>
 		-->
 	
-		<span id="UploaderMessage"><?php echo $UploaderReadyMessage; ?></span>
+		<span id="UploaderMessage">初期化中です…</span>
 		<form method="post" enctype="multipart/form-data" id="UploaderPanel" target="BasicResultBox" name="ImageUploader" action="upload.php">
 			<p id="Preview"></p>
 			<div style="font-weight:bold">ファイル</div>
@@ -294,7 +284,7 @@ if( $ImageCount == 0 ){
 <!-- Footer -->
 <footer>
 <div style="margin:2em 3em; ">
-	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank"><script type="text/javascript">document.write(VersionNumber);</script></a>｜<a href="./mega-editor.php">管理者用メガエディター</a></p>
+	<p><a href="https://github.com/kouki-kuriyama/jlab-script-plus/" target="_blank"><script type="text/javascript">document.write(VersionNumber);</script></a>｜<a href="./mega-editor.php">管理者用メガエディター</a>｜<a href="javascript:void(0)" onclick="SetForceBasic()"><span id="ModeChangeLink">Basicモードを使用する</span></a></p>
 </div>
 </footer>
 
@@ -307,7 +297,7 @@ if( $ImageCount == 0 ){
 <div id="URLBox">
 <div id="URLBoxLabel"><a href="javascript:void(0)" onclick="ToggleURLBox()"><div>URLBox</div></a></div>
 	<div id="URLBoxInner">
-	<textarea id="urlbox-textarea" class="TextBox" style="width:60%; height:80px; margin-bottom:10px"></textarea><br>
+	<textarea id="urlbox-textarea" class="TextBox" style="width:60%; height:80px; margin-bottom:10px" onclick="this.select(0,this.value.length)"></textarea><br>
 	<input type="button" class="BlueButton" value="クリア" onclick="urlbox('clear')">
 	<input type="button" class="BlueButton" value="URLをコピー" onclick="CopyURLBox('urlbox-textarea')">
 	<span style="color:#ccc; font-size:12px;">　URLBoxに追加されたURLはクリアされるまで自動で保存されます</span>

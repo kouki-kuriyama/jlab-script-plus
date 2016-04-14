@@ -2,7 +2,7 @@
 
 /*
 	jlab-script-plus upload.php
-	Version 0.07a / Kouki Kuriyama
+	Version 0.07b / Kouki Kuriyama
 	https://www.github.com/kouki-kuriyama/jlab-script-plus
 */
 

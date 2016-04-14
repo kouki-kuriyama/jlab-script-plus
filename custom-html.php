@@ -3,7 +3,7 @@
 /*
 	
 	jlab-script-plus custom-html.php
-	Version 0.07a / Kouki Kuriyama
+	Version 0.07b / Kouki Kuriyama
 	https://github.com/kouki-kuriyama/jlab-script-plus
 	
 	index.phpに設定するカスタムHTML用のファイルです。ろだ毎のメニュー作成や追記事項記入にお使いください
