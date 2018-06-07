@@ -16,7 +16,7 @@ var ReadyImageNum = 0;
 var xmlRequest = new XMLHttpRequest();
 
 //バージョン情報を設定
-var VersionNumber = "jlab-script-plus Ver0.07b";
+var VersionNumber = "jlab-script-plus Ver0.07";
 
 //FileAPIが使用できるか確認する
 function CheckEnableFileAPI(){

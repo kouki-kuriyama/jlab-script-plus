@@ -3,7 +3,7 @@
 /*
 	
 	jlab-script-plus settings.php
-	Version 0.07b / Kouki Kuriyama
+	Version 0.07 / Kouki Kuriyama
 	https://github.com/kouki-kuriyama/jlab-script-plus
 	
 	■ jlab-script-plus アップローダー設定ファイル ■
