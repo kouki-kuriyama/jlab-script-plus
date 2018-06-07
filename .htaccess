@@ -1,6 +1,0 @@
-# この htaccessファイル はApache上で jlab-script-plus を動作させる場合に使用します。
-# 削除キーを平文で保存する場合は、この htaccessファイル を必ず設置してください。
-# (暗号化して保存している場合でも、この htaccessファイル を設置するとセキュリティが向上します。
-<Files ~ "\.dat$">
-deny from all 
-</Files>

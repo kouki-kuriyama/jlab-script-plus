@@ -3,7 +3,7 @@
 /*
 	
 	jlab-script-plus mega-editor.php
-	Version 0.06 / Kouki Kuriyama
+	Version 0.07 / Kouki Kuriyama
 	https://github.com/kouki-kuriyama/jlab-script-plus
 	
 */
@@ -74,262 +74,280 @@ else if( $LoginEditor == "Login" ){
 	$ArcData = $_GET["Arc"];
 	$EditMode = $_GET["EditMode"];
 	
-	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
+	if( !empty($EditMode) ){
 	
-	//モード処理(画像のダウンロード)
-	if(( $EditMode == "Dl" )&&( !empty($ArcData) )){
-	
-		//ファイルが存在するかを確認
-		if( file_exists("./{$SaveFolder}/{$ArcData}") ){
+		/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
 		
-			//画像ファイル名
-			$DLFileName = "./{$SaveFolder}/{$ArcData}";
+		//モード処理(画像のダウンロード)
+		if(( $EditMode == "Dl" )&&( !empty($ArcData) )){
+		
+			//ファイルが存在するかを確認
+			if( file_exists("./{$SaveFolder}/{$ArcData}") ){
 			
-			//ダウンロード
-			header("Content-Type: application/octet-stream");
-			header("Content-Disposition: attachment; filename='{$ArcData}'"); 
-			header("Content-Length: ".filesize($DLFileName));
-			readfile($DLFileName);
-			exit;
-			
-		}else{
-			//メッセージ
-			$MainSetHTML = "<span style=\"font-weight:bold; color:red\">{$ArcData} は見つかりませんでした</span>\n";
+				//画像ファイル名
+				$DLFileName = "./{$SaveFolder}/{$ArcData}";
+				
+				//ダウンロード
+				header("Content-Type: application/octet-stream");
+				header("Content-Disposition: attachment; filename='{$ArcData}'"); 
+				header("Content-Length: ".filesize($DLFileName));
+				readfile($DLFileName);
+				exit;
+				
+			}else{
+				//メッセージ
+				$MainSetHTML = "<span style=\"font-weight:bold; color:red\">{$ArcData} は見つかりませんでした</span>\n";
+			}
 		}
-	}
-	
-	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
-	
-	//モード処理(ログのダウンロード)
-	else if(( $EditMode == "LogDl" )&&( !empty($ArcData) )){
 		
-		//ファイルが存在するかを確認
-		if( file_exists("./{$SaveFolder}/{$ArcData}") ){
+		/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
 		
-			//ファイル名分割
-			list($LogFName,$Trash) = explode(".",$ArcData);
+		//モード処理(ログのダウンロード)
+		else if(( $EditMode == "LogDl" )&&( !empty($ArcData) )){
 			
-			//ログファイル名
-			$DLFileName = "./{$LogFolder}/{$LogFName}.dat";
+			//ファイルが存在するかを確認
+			if( file_exists("./{$SaveFolder}/{$ArcData}") ){
 			
+				//ファイル名分割
+				list($LogFName,$Trash) = explode(".",$ArcData);
+				
+				//ログファイル名
+				$DLFileName = "./{$LogFolder}/{$LogFName}.dat";
+				
+				//ダウンロード
+				header("Content-type: application/octet-stream");
+				header("Content-Disposition: attachment; filename='{$LogFName}.txt'");
+				header("Content-Length: ".filesize($DLFileName));
+				readfile($DLFileName);
+				exit;
+				
+			}else{
+				//メッセージ
+				$MainSetHTML = "<span style=\"font-weight:bold; color:red\">{$ArcData} のログファイルは見つかりませんでした</span>\n";
+			}
+		}
+		
+		/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
+		
+		//モード処理(全体ログのダウンロード)
+		else if( $EditMode == "AllLogDl" ){
+		
 			//ダウンロード
 			header("Content-type: application/octet-stream");
-			header("Content-Disposition: attachment; filename='{$LogFName}.txt'");
-			header("Content-Length: ".filesize($DLFileName));
-			readfile($DLFileName);
+			header("Content-Disposition: attachment; filename='jlab-script-plus.txt'");
+			header("Content-Length: ".filesize("./static/jlab-script-plus.dat"));
+			readfile("./static/jlab-script-plus.dat");
 			exit;
-			
-		}else{
-			//メッセージ
-			$MainSetHTML = "<span style=\"font-weight:bold; color:red\">{$ArcData} のログファイルは見つかりませんでした</span>\n";
+		
 		}
-	}
+		
+		/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
+		
+		//モード処理(画像削除)
+		else if(( $EditMode == "Del" )&&( !empty($ArcData) )){
+		
+			//ファイルが存在するかを確認
+			if( file_exists("./{$SaveFolder}/{$ArcData}") ){
+				
+				//拡張子とファイル名を分割
+				list($RFileName,$ExtensionID) = explode(".",$ArcData);
+				
+				//拡張子と接頭語を取り外す
+				$NDFileName_oq = preg_replace("~[^0-9]~","",$RFileName);
+				
+				//アップロード日を取得する
+				$UploadedDate = substr($NDFileName_oq,0,6);
+				
+				//管理者権限で削除
+				unlink("./{$SaveFolder}/{$ArcData}");
+				unlink("./{$ThumbSaveFolder}/{$ArcData}");
+				unlink("./{$LogFolder}/{$RFileName}.dat");
+				
+				//一覧ログから削除する
+				$ImageList = file_get_contents("./{$LogFolder}/ImageList.txt");
+				$ImageList = explode("\n",$ImageList);
+				foreach($ImageList as $key => $value) {
+					if( preg_match("~{$ArcData}~",$value) ) {
+						break;
+					}
+				}
+				unset($ImageList[$key]);
+				file_put_contents("./{$LogFolder}/ImageList.txt",implode("\n",$ImageList));
+				
+				//メッセージ
+				$MainSetHTML = "<span style=\"font-weight:bold; color:blue\">{$ArcData} は削除されました</span>\n";
 	
-	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
+			}else{
+				//メッセージ
+				$MainSetHTML = "<span style=\"font-weight:bold; color:red\">{$ArcData} は見つかりませんでした</span>\n";
+			}
+		}
+		
+		/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
+		
+		//ログをクイックルック
+		else if(( $EditMode == "qLook" )&&( !empty($ArcData) )){
+		
+			//ファイルが存在するかを確認
+			if( file_exists("./{$SaveFolder}/{$ArcData}") ){
+				
+				//拡張子とファイル名を分割
+				list($LogFName,$ExtensionID) = explode(".",$ArcData);
+			
+				$DLFileName = "./{$LogFolder}/{$LogFName}.dat";
+				header("Content-type: text/plain");
+				readfile($DLFileName);
+				exit;
 	
-	//モード処理(画像削除)
-	else if(( $EditMode == "Del" )&&( !empty($ArcData) )){
-	
-		//ファイルが存在するかを確認
-		if( file_exists("./{$SaveFolder}/{$ArcData}") ){
+			}else{
+				//メッセージ
+				$MainSetHTML = "<span style=\"font-weight:bold; color:red\">{$ArcData} は見つかりませんでした</span>\n";
+			}
+		}
+		
+		/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
+		
+		//イメージリストをクイックルック
+		else if( $EditMode == "qLookList" ){
 			
-			//拡張子とファイル名を分割
-			list($RFileName,$ExtensionID) = explode(".",$ArcData);
+			//ファイルが存在するかを確認
+			if( file_exists("./{$LogFolder}/ImageList.txt") ){
+				header("Content-type: text/plain");
+				readfile("./{$LogFolder}/ImageList.txt");
+				exit;
+			}else{
+				header("Content-type: text/plain");
+				echo "ログはありません";
+				exit;
+			}
+		}
+		
+		/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
+		
+		//ログを再生成する
+		else if( $EditMode == "RestoreLog" ){
 			
-			//拡張子と接頭語を取り外す
-			$NDFileName_oq = preg_replace("~[^0-9]~","",$RFileName);
+			//ログファイル名
+			$LogFileName = "./{$LogFolder}/ImageList.txt";
 			
-			//アップロード日を取得する
-			$UploadedDate = substr($NDFileName_oq,0,6);
+			//ログが保存済みの場合は一度削除する
+			if( file_exists("./{$LogFileName}") ){
+				unlink($LogFileName);
+			}
 			
-			//管理者権限で削除
-			unlink("./{$SaveFolder}/{$ArcData}");
-			unlink("./{$ThumbSaveFolder}/{$ArcData}");
-			unlink("./{$LogFolder}/{$RFileName}.dat");
+			//ファイルリストの配列を作成する
+			$FileNamelist = array();
 			
-			//一覧ログから削除する
+			//画像一覧を取得する
+			if( $GetObFolder = opendir("./{$SaveFolder}/") ){
+				
+				//保存フォルダを走査する
+				while(( $NDFileName = readdir($GetObFolder) ) !== false) {
+					
+					//フォルダ内の画像データを調査し、配列に代入する
+					if(( $NDFileName != "." )&&( $NDFileName != ".." )){
+						
+						//拡張子と接頭語を取り外す
+						$NDFileName_oq = preg_replace("~[^0-9]~","",$NDFileName);
+						
+						//画像IDからアップロード時間を取得
+						$UpYear = substr($NDFileName_oq,0,2);
+						$UpMonth = substr($NDFileName_oq,2,2);
+						$UpDay = substr($NDFileName_oq,4,2);
+						$UpHour = substr($NDFileName_oq,6,2);
+						$UpMinute = substr($NDFileName_oq,8,2);
+						$UpSecond = substr($NDFileName_oq,10,2);
+						
+						//画像から縦横幅、サイズを取得する
+						list($ImageWidth,$ImageHeight,$MType,$Attr) = getimagesize("./{$SaveFolder}/{$NDFileName}");
+						$FileSizes = round( filesize("./{$SaveFolder}/{$NDFileName}")/1024 );
+						
+						$FileNamelist[] = $NDFileName."#{$UpYear}/{$UpMonth}/{$UpDay} {$UpHour}:{$UpMinute}:{$UpSecond}#{$ImageWidth}#{$ImageHeight}#{$FileSizes}";
+						
+					}
+				}
+				
+				//フォルダ走査を終了する
+				closedir($GetObFolder);
+			}
+			
+			//新しい順にソートする
+			arsort($FileNamelist);
+			
+			//imagelist.txtに保存する
+			file_put_contents("{$LogFileName}",implode("\n",$FileNamelist));
+			
+			//メッセージ
+			$MainSetHTML = "<span style=\"font-weight:bold; color:blue\">ログファイルをリストアしました</span>\n";
+			$DisplayDay = $ArcData;
+			
+		}
+		
+		/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
+		
+		//保存期間が終了している画像・ログを一括削除
+		else if( $EditMode == "CleanUpExp" ){
+			
+			//一覧ログを取得する
 			$ImageList = file_get_contents("./{$LogFolder}/ImageList.txt");
 			$ImageList = explode("\n",$ImageList);
-			foreach($ImageList as $key => $value) {
-				if( preg_match("~{$ArcData}~",$value) ) {
-					break;
-				}
-			}
-			unset($ImageList[$key]);
-			file_put_contents("./{$LogFolder}/ImageList.txt",implode("\n",$ImageList));
 			
-			//メッセージ
-			$MainSetHTML = "<span style=\"font-weight:bold; color:blue\">{$ArcData} は削除されました</span>\n";
-
-		}else{
-			//メッセージ
-			$MainSetHTML = "<span style=\"font-weight:bold; color:red\">{$ArcData} は見つかりませんでした</span>\n";
-		}
-	}
-	
-	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
-	
-	//ログをクイックルック
-	else if(( $EditMode == "qLook" )&&( !empty($ArcData) )){
-	
-		//ファイルが存在するかを確認
-		if( file_exists("./{$SaveFolder}/{$ArcData}") ){
+			//(この処理は functions.php に移動しました)
+			TimeLimitDeletion(true);
 			
-			//拡張子とファイル名を分割
-			list($LogFName,$ExtensionID) = explode(".",$ArcData);
-		
-			$DLFileName = "./{$LogFolder}/{$LogFName}.dat";
-			header("Content-type: text/plain");
-			readfile($DLFileName);
-			exit;
-
-		}else{
-			//メッセージ
-			$MainSetHTML = "<span style=\"font-weight:bold; color:red\">{$ArcData} は見つかりませんでした</span>\n";
-		}
-	}
-	
-	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
-	
-	//イメージリストをクイックルック
-	else if( $EditMode == "qLookList" ){
-		
-		//ファイルが存在するかを確認
-		if( file_exists("./{$LogFolder}/ImageList.txt") ){
-			header("Content-type: text/plain");
-			readfile("./{$LogFolder}/ImageList.txt");
-			exit;
-		}else{
-			header("Content-type: text/plain");
-			echo "ログはありません";
-			exit;
-		}
-	}
-	
-	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
-	
-	//ログを再生成する
-	else if( $EditMode == "RestoreLog" ){
-		
-		//ログファイル名
-		$LogFileName = "./{$LogFolder}/ImageList.txt";
-		
-		//ログが保存済みの場合は一度削除する
-		if( file_exists("./{$LogFileName}") ){
-			unlink($LogFileName);
+			$MainSetHTML = "<span style=\"font-weight:bold; color:blue\">期限切れの画像・ログファイルを削除しました</span>\n";
 		}
 		
-		//ファイルリストの配列を作成する
-		$FileNamelist = array();
+		/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
 		
-		//画像一覧を取得する
-		if( $GetObFolder = opendir("./{$SaveFolder}/") ){
+		//すべてのサムネイルを再生成
+		else if( $EditMode == "RemakeThumb" ){
 			
-			//保存フォルダを走査する
-			while(( $NDFileName = readdir($GetObFolder) ) !== false) {
+			if( $GetTObFolder = opendir("./{$SaveFolder}/") ){
 				
-				//フォルダ内の画像データを調査し、配列に代入する
-				if(( $NDFileName != "." )&&( $NDFileName != ".." )){
+				//保存フォルダを走査する
+				while(( $NDFileNameThumb = readdir($GetTObFolder) ) !== false) {
 					
-					//拡張子と接頭語を取り外す
-					$NDFileName_oq = preg_replace("~[^0-9]~","",$NDFileName);
-					
-					//画像IDからアップロード時間を取得
-					$UpYear = substr($NDFileName_oq,0,2);
-					$UpMonth = substr($NDFileName_oq,2,2);
-					$UpDay = substr($NDFileName_oq,4,2);
-					$UpHour = substr($NDFileName_oq,6,2);
-					$UpMinute = substr($NDFileName_oq,8,2);
-					$UpSecond = substr($NDFileName_oq,10,2);
-					
-					//画像から縦横幅、サイズを取得する
-					list($ImageWidth,$ImageHeight,$MType,$Attr) = getimagesize("./{$SaveFolder}/{$NDFileName}");
-					$FileSizes = round( filesize("./{$SaveFolder}/{$NDFileName}")/1024 );
-					
-					$FileNamelist[] = $NDFileName."#{$UpYear}/{$UpMonth}/{$UpDay} {$UpHour}:{$UpMinute}:{$UpSecond}#{$ImageWidth}#{$ImageHeight}#{$FileSizes}";
-					
+					//フォルダ内の画像データを調査しサムネイルを作成する
+					//サムネイルサイズはsetting.datに設定された値を使用
+					if(( $NDFileNameThumb != "." )&&( $NDFileNameThumb != ".." )){
+						
+						//古いサムネイルを削除する
+						unlink("./{$ThumbSaveFolder}/{$NDFileNameThumb}");
+						
+						//拡張子を取り除く
+						list($ReFileName,$Trash) = explode(".",$NDFileNameThumb);
+						
+						$RemakeThumb = new Image("./{$SaveFolder}/{$NDFileNameThumb}");
+						$RemakeThumb -> name("../{$ThumbSaveFolder}/{$ReFileName}");
+						$RemakeThumb -> width($MaxThumbWidth);
+						$RemakeThumb -> save();
+						
+					}
 				}
+			
+				//フォルダ走査を終了する
+				closedir($GetTObFolder);
+			
 			}
 			
-			//フォルダ走査を終了する
-			closedir($GetObFolder);
-		}
-		
-		//新しい順にソートする
-		arsort($FileNamelist);
-		
-		//imagelist.txtに保存する
-		file_put_contents("{$LogFileName}",implode("\n",$FileNamelist));
-		
-		//メッセージ
-		$MainSetHTML = "<span style=\"font-weight:bold; color:blue\">ログファイルをリストアしました</span>\n";
-		$DisplayDay = $ArcData;
-		
-	}
-	
-	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
-	
-	//保存期間が終了している画像・ログを一括削除
-	else if( $EditMode == "CleanUpExp" ){
-		
-		//一覧ログを取得する
-		$ImageList = file_get_contents("./{$LogFolder}/ImageList.txt");
-		$ImageList = explode("\n",$ImageList);
-		
-		//(この処理は functions.php に移動しました)
-		TimeLimitDeletion(true);
-		
-		$MainSetHTML = "<span style=\"font-weight:bold; color:blue\">期限切れの画像・ログファイルを削除しました</span>\n";
-	}
-	
-	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
-	
-	//すべてのサムネイルを再生成
-	else if( $EditMode == "RemakeThumb" ){
-		
-		if( $GetTObFolder = opendir("./{$SaveFolder}/") ){
+			$MainSetHTML = "<span style=\"font-weight:bold; color:blue\">サムネイルを再生成しました</span>\n";
 			
-			//保存フォルダを走査する
-			while(( $NDFileNameThumb = readdir($GetTObFolder) ) !== false) {
-				
-				//フォルダ内の画像データを調査しサムネイルを作成する
-				//サムネイルサイズはsetting.datに設定された値を使用
-				if(( $NDFileNameThumb != "." )&&( $NDFileNameThumb != ".." )){
-					
-					//古いサムネイルを削除する
-					unlink("./{$ThumbSaveFolder}/{$NDFileNameThumb}");
-					
-					//拡張子を取り除く
-					list($ReFileName,$Trash) = explode(".",$NDFileNameThumb);
-					
-					$RemakeThumb = new Image("./{$SaveFolder}/{$NDFileNameThumb}");
-					$RemakeThumb -> name("../{$ThumbSaveFolder}/{$ReFileName}");
-					$RemakeThumb -> width($MaxThumbWidth);
-					$RemakeThumb -> save();
-					
-				}
-			}
-		
-			//フォルダ走査を終了する
-			closedir($GetTObFolder);
-		
 		}
 		
-		$MainSetHTML = "<span style=\"font-weight:bold; color:blue\">サムネイルを再生成しました</span>\n";
+		/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
 		
+		//メガエディターからログアウト
+		else if( $EditMode == "Logout" ){
+			$MegaEditor = false;
+			setcookie("MEditor","Login", time()-3600);
+			header("Location:./");
+			exit;
+		}
+		
+		/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
 	}
-	
-	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
-	
-	//メガエディターからログアウト
-	else if( $EditMode == "Logout" ){
-		$MegaEditor = false;
-		setcookie("MEditor","Login", time()-3600);
-		header("Location:./");
-		exit;
-	}
-	
-	/* *#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#*#* */
+
 }
 
 ?>
@@ -429,6 +447,7 @@ if( $MegaEditor ){
 	echo "<li><a href=\"mega-editor.php\" onclick=\"RestoreLog(); return false;\">ログをリストア</a></li>\n";
 	echo "<li><a href=\"mega-editor.php?\" onclick=\"RemakeThumb(); return false;\">すべてのサムネイルを再生成</a></li>\n";
 	echo "<li><a href=\"mega-editor.php\" onclick=\"CleanUpExp(); return false;\">期限切れの画像を一括削除</a></li>\n";
+	echo "<li><a href=\"mega-editor.php?EditMode=AllLogDl\">スクリプトログをダウンロード</a></li>\n";
 	echo "<li><a href=\"?EditMode=Logout\">ログアウト</a></li>\n";
 }else{
 	echo "<li><a href=\"./\">{$JlabTitle}へ戻る</a></li>\n";
@@ -540,10 +559,10 @@ if( $MegaEditor ){
 		echo "<a href=\"{$SaveFolder}/{$ListElement[0]}\" target=\"_blank\"><div class=\"InitImage\"><img src=\"{$ThumbSaveFolder}/{$ListElement[0]}\"></div></a>\n";
 		echo "<div><input type=\"text\" class=\"TextBox\" style=\"width:350px\" onclick=\"this.select(0,this.value.length)\" value=\"{$FullURL}{$SaveFolder}/{$ListElement[0]}\" readonly></div>\n";
 		echo "<div>\n";
-		echo "<input type=\"button\" class=\"RedButton\" value=\"Delete\" onclick=\"DeleteImage('{$ListElement[0]}')\"> ";
-		echo "<input type=\"button\" class=\"BlueButton\" value=\"Download Image\" onclick=\"location.href='./mega-editor.php?EditMode=Dl&Arc={$ListElement[0]}'\"> ";
-		echo "<input type=\"button\" class=\"BlueButton\" value=\"Download Log(.txt)\" onclick=\"location.href='./mega-editor.php?EditMode=LogDl&Arc={$ListElement[0]}'\"><br>\n";
-		echo "<input type=\"button\" style=\"margin-top:4px\" class=\"BlueButton\" value=\"QuickLook Log\" onclick=\"window.open('./mega-editor.php?EditMode=qLook&Arc={$ListElement[0]}')\">\n";
+		echo "<input type=\"button\" class=\"RedButton\" value=\"管理者権限で削除\" onclick=\"DeleteImage('{$ListElement[0]}')\"> ";
+		echo "<input type=\"button\" class=\"BlueButton\" value=\"画像をダウンロード\" onclick=\"location.href='./mega-editor.php?EditMode=Dl&Arc={$ListElement[0]}'\"> ";
+		echo "<input type=\"button\" class=\"BlueButton\" value=\"個別ログをダウンロード\" onclick=\"location.href='./mega-editor.php?EditMode=LogDl&Arc={$ListElement[0]}'\"><br>\n";
+		echo "<input type=\"button\" style=\"margin-top:4px\" class=\"BlueButton\" value=\"個別ログを閲覧\" onclick=\"window.open('./mega-editor.php?EditMode=qLook&Arc={$ListElement[0]}')\">\n";
 		echo "</div>\n";
 		echo "<br style=\"clear:left;\">\n";
 		echo "</div>\n\n";

@@ -1,11 +1,11 @@
 <?php
 
 /*
-	
+
 	jlab-script-plus delete.php
-	Version 0.06 / Kouki Kuriyama
+	Version 0.07 / Kouki Kuriyama
 	https://github.com/kouki-kuriyama/jlab-script-plus
-	
+
 */
 
 //HTMLで出力する
@@ -35,29 +35,29 @@ if( $getDeleteKey != "" ){
 switch( $DeleteMode ){
 
 	case true:
-	
+
 	//リファラーとCookieチェック
 	if( !preg_match("~^{$FullURL}~",$_SERVER["HTTP_REFERER"] )){
 		$ResultMessage .= "パラメーターエラー";
 		$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"button\" class=\"BlueButton\" value=\"戻る\" onclick=\"location.href='./'\"></div>\n";
 		break;
 	}
-	
+
 	//拡張子とファイル名を分割
 	list($RFileName,$ExtensionID) = explode(".",$FileName);
-	
+
 	//拡張子と接頭語を取り外す
 	$NDFileName_oq = preg_replace("~[^0-9]~","",$RFileName);
-	
+
 	//アップロード日を取得する
 	$UploadedDate = substr($NDFileName_oq,0,6);
-	
+
 	//DATファイルを取得し、設定されている削除キーを取得する
 	$ImageDatPath = "./{$LogFolder}/{$RFileName}.dat";
 	$ImageDat = file_get_contents($ImageDatPath);
 	$ImageDatas = explode("\n",$ImageDat);
 	$ImageDeleteKey = $ImageDatas[3];
-	
+
 	//旧バージョンのログファイルの場合は削除不可(管理者問い合わせ)
 	if( preg_match("~0\.1~",$ImageDatas[0]) ){
 		$ResultMessage .= "旧バージョンの管理ファイルが使用されている為、削除できません<br>";
@@ -72,14 +72,14 @@ switch( $DeleteMode ){
 		$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"button\" class=\"BlueButton\" value=\"戻る\" onclick=\"location.href='./'\"></div>\n";
 		break;
 	}
-	
+
 	//削除キーが一致しているかを確認する
 	if( crypt($getDeleteKey,base64_decode($ImageDeleteKey)) === base64_decode($ImageDeleteKey)) {
-	
+
 		unlink("./{$SaveFolder}/{$FileName}");
 		unlink("./{$ThumbSaveFolder}/{$FileName}");
 		unlink("./{$LogFolder}/{$RFileName}.dat");
-	
+
 		//画像一覧ログから削除する
 		$ImageList = file_get_contents("./{$LogFolder}/ImageList.txt");
 		$ImageList = explode("\n",$ImageList);
@@ -90,11 +90,11 @@ switch( $DeleteMode ){
 		}
 		unset($ImageList[$key]);
 		file_put_contents("./{$LogFolder}/ImageList.txt",implode("\n",$ImageList));
-		
+
 		$ResultMessage .= "{$FileName} は削除されました\n";
 		$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"button\" class=\"BlueButton\" value=\"完了\" onclick=\"location.href='./'\"></div>\n";
 		break;
-		
+
 	}else{
 		$ResultMessage .= "<form method=\"post\" action=\"delete.php?Arc={$FileName}\" name=\"DeletePanel\">\n";
 		$ResultMessage .= "<span style=\"font-weight:bold; color:red\">削除キーが一致しません</span><br>\n";
@@ -105,9 +105,9 @@ switch( $DeleteMode ){
 		$ResultMessage .= "<div style=\"margin-top:1em\"><input type=\"submit\" class=\"RedButton\" value=\"削除\"> <input type=\"button\" class=\"BlueButton\" value=\"戻る\" onclick=\"location.href='./'\"></div>\n";
 		$ResultMessage .= "</form>\n";
 		break;
-	
+
 	}
-	
+
 	break;
 	default:
 	$ResultMessage .= "<form method=\"post\" action=\"delete.php?Arc={$FileName}\" name=\"DeletePanel\">\n";
@@ -153,7 +153,7 @@ fclose($ProcessLock);
 	<div id="ResultP">
 	<?php echo $ResultMessage; ?>
 	</div>
-	
+
 </div>
 
 <!-- Footer -->
@@ -164,4 +164,4 @@ fclose($ProcessLock);
 </footer>
 
 </body>
-</html>	
+</html>
