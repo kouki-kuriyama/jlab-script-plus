@@ -1,7 +1,8 @@
 jlab-script-plus Ver0.07
 ================
 
-**2018年6月8日 jlab-script-plus Ver0.07 を公開しました**  
+**2018年11月19日 jlab-script-plus2 beta1 を公開しました**  
+[jlab-script-plus2 beta1のリポジトリはこちら](https://github.com/kouki-kuriyama/jlab-script-plus2)
 
 ## 重要情報
 無印jlab-script-plusはこのVer0.07が最終バージョンの予定です。  
